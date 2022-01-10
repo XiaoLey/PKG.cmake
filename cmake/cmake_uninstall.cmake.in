@@ -1,0 +1,35 @@
+# If CUSTOM_UNINSTALL_FILES is defined, the files additionally specified
+# in the CUSTOM_UNINSTALL_FILES list will be uninstalled together
+
+if (NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
+    message(FATAL_ERROR "Cannot find install manifest: \"@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt\"")
+endif ()
+
+file(READ "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt" files)
+string(REGEX REPLACE "\;" "\\\;" files "${files}")  # Escape the original semicolon first
+string(REGEX REPLACE "\n" ";" files "${files}")
+list(REMOVE_DUPLICATES files)   # files deduplication
+set(_CUSTOM_UNINSTALL_FILES @CUSTOM_UNINSTALL_FILES@)
+
+foreach (file IN LISTS files _CUSTOM_UNINSTALL_FILES)
+    message(STATUS "Uninstalling: \"$ENV{DESTDIR}${file}\"")
+    if (EXISTS "$ENV{DESTDIR}${file}")
+        #        execute_process(
+        #                COMMAND "@CMAKE_COMMAND@" -E remove \"$ENV{DESTDIR}${file}\"
+        #                OUTPUT_VARIABLE rm_out
+        #                RESULT_VARIABLE rm_resVal
+        #        )
+
+        exec_program(
+          "@CMAKE_COMMAND@" ARGS "-E rm -r \"$ENV{DESTDIR}${file}\""
+          OUTPUT_VARIABLE rm_out
+          RETURN_VALUE rm_resVal
+        )
+
+        if (NOT "${rm_resVal}" STREQUAL 0)
+            message(FATAL_ERROR "Problem when removing \"$ENV{DESTDIR}${file}\" —— ${rm_resVal}")
+        endif ()
+    else ()
+        message(STATUS "File \"$ENV{DESTDIR}${file}\" does not exist.")
+    endif ()
+endforeach ()
