@@ -1,50 +1,6 @@
 #===============================================================================
 #
-# @brief 快速打包项目或项目内的组件
-#
-# @par 可用参数
-# _IS_COMPONENT             opt，当前安装的是项目的小部件
-# _IS_COMPONENTS            opt，当前安装的是组件集，组件集不能是可生成目标
-# _NAME                     one，项目名称/组件名称（无默认）
-# _PROJECT                  one，`_IS_COMPONENT` 开启时可用，指定本组件所附属的项目名称（默认：${PROJECT_NAME}）
-# _VERSION                  one，版本（默认：目标（_NAME）属性 VERSION 的值|未定义）
-# _COMPATIBILITY            one，定义目标的版本兼容性，
-#                           支持的值: `AnyNewerVersion|SameMajorVersion|SameMinorVersion|ExactVersion`（默认：AnyNewerVersion）
-# _DEBUG_POSTFIX            one，在Debug的编译文件的文件名后面添加标识，例如："d"，对Release无效（无默认）
-# _SHARED_LIBS              opt，指定函数作用域内的 BUILD_SHARED_LIBS 变量值，将会在PKG_components-config.cmake.in用到
-# _BINARY_DIR               one，指定项目的二进制目录（默认：${CMAKE_BINARY_DIR}）
-# _BINARY_BIN_DIR           one，指定项目的二进制目录的 runtime 目录，相对于 `_BINARY_DIR`，也可定义绝对路径（默认：bin）
-# _BINARY_LIB_DIR           one，指定项目的二进制目录的 library 目录，相对于 `_BINARY_DIR`，也可定义绝对路径（默认：lib）
-# _INSTALL_DIR              one，指定项目的安装目录（默认：${CMAKE_INSTALL_PREFIX}）
-# _INSTALL_INCLUDE_DIR      one，指定项目的安装目录的 include 目录，相对于 `_INSTALL_DIR`，也可定义绝对路径（默认：include）
-# _INSTALL_BIN_DIR          one，指定项目的安装目录的 runtime 目录，相对于 `_INSTALL_DIR`，也可定义绝对路径（默认：bin）
-# _INSTALL_LIB_DIR          one，指定项目的安装目录的 library 目录，相对于 `_INSTALL_DIR`，也可定义绝对路径（默认：lib）
-# _ADD_LIB_SUFFIX           opt，在 library 目录名添加后缀"64"，仅64位系统有效
-# _INCLUDE_FILES            mul，目标公共标头的文件位置，可以是绝对或相对路径，相对路径相对于 `CMAKE_CURRENT_SOURCE_DIR`，支持生成器表达式（无默认）
-# _INCLUDE_DIRS             mul，目标公共标头的目录位置，可以是绝对或相对路径，相对路径相对于 `CMAKE_CURRENT_SOURCE_DIR`，支持生成器表达式（无默认）
-# _INCLUDE_EXCLUDE_REG      one，安装目标公共标头时忽略的文件或目录的完整路径相匹配的正则表达式（无默认）
-# _INCLUDE_DESTINATION      one，匹配目标的 `INSTALL_INTERFACE` 包含目录（默认：${_INSTALL_INCLUDE_DIR}）
-# _DISABLE_INTERFACE        opt，禁止把 `_INCLUDE_DESTINATION` 指定的目录包含到 `INSTALL_INTERFACE` 中
-# _MODE                     one，安装模式，支持的值: `Runtime | Development`（默认：Development）
-# _NAMESPACE                one，使用命名空间安装您的目标，不要添加额外的'::'（无默认）
-# _EXPORT_HEADER            one，此处设置创建的导出标头的文件绝对或相对路径，相对路径相对于 `CMAKE_CURRENT_BINARY_DIR`（无默认）
-# _EXPORT_MACRO             one，导出标头中的宏定义（默认：`${_NAME}_API|${_PROJECT}_${_NAME}_API`，将变为大写）
-# _INSTALL_PDB              opt，安装PDB文件，仅MSVC有效
-# _DISABLE_CONFIG           opt，禁用 config文件生成
-# _DISABLE_VERSION          opt，始终禁用 config-version文件生成，如果没有基于 `_VERSION` 参数值以及没有定义 `_NAME` 的属性VERSION，config-version文件也不会生成
-# _CONFIG_TEMPLATE          one, 用于生成 config 文件的 config 模板文件（默认：${CMAKE_SOURCE_DIR}/cmake/PKG_normal-config.cmake.in|
-#                                                                      ${CMAKE_SOURCE_DIR}/cmake/PKG_components-config.cmake.in）
-# _ADD_UNINSTALL            opt，`_IS_COMPONENT` 关闭时可用，添加卸载命令
-# _UNINSTALL_TEMPLATE       one，`_IS_COMPONENT` 关闭时可用，卸载操作的模板文件（默认：${CMAKE_SOURCE_DIR}/cmake/PKG_cmake_uninstall.cmake.in）
-# _UNINSTALL_ADDITIONAL     mul，`_IS_COMPONENT` 关闭时可用，附加卸载的文件或目录，被附加的文件或目录将在卸载操作进行时一同进行卸载（无默认）
-#
-# @par 全局变量
-# PKG_<PROJECT>_BINARY_DIR  如果未自定义 _BINARY_DIR 参数，则会使用改变量值作为其参数值，该值会影响附属于<PROJECT>的组件
-# PKG_<PROJECT>_INSTALL_DIR 如果未自定义 _INSTALL_DIR 参数，则会使用改变量值作为其参数值，该值会影响附属于<PROJECT>的组件
-#
-# @par 函数导出的变量
-# PKG_<_PROJECT>_<_NAME>_EXPORT_HEADER_DIR  _IS_COMPONENT 开启时有效，值为导出标头的所在目录（确保 _EXPORT_HEADER 参数已定义）
-# PKG_<_NAME>_EXPORT_HEADER_DIR             _IS_COMPONENT 与_IS_COMPONENTS 均关闭时有效，值为导出标头的所在目录（确保 _EXPORT_HEADER 参数已定义）
+# @brief Quickly package projects or multi-component projects
 function(PKG)
     include(CMakeParseArguments)
     set(
