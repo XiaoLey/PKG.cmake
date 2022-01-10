@@ -1,8 +1,6 @@
 # PKG.cmake
 Simplify a large amount of code during project installation, using a single function to encapsulate some of the export and installation operations to facilitate the installation of a single project or a multi-component project.
 
-简化项目安装时的大量代码，使用一个函数封装导出和安装的一些操作，以便于进行单一项目或多组件项目的安装
-
 
 
 ## Usage
