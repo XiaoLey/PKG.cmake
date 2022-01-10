@@ -14,7 +14,7 @@ PKG(
 )
 ```
 
-You can then look for `PKG_lib` library in other projects through `find_package()`:
+After performing the library installation, you can then look for `PKG_lib` library in other projects through `find_package()`:
 
 ```cmake
 find_package(PKG_lib REQUIRED)
