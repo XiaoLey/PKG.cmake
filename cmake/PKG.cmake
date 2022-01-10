@@ -35,7 +35,7 @@
 # _CONFIG_TEMPLATE          one, 用于生成 config 文件的 config 模板文件（默认：${CMAKE_SOURCE_DIR}/cmake/PKG_normal-config.cmake.in|
 #                                                                      ${CMAKE_SOURCE_DIR}/cmake/PKG_components-config.cmake.in）
 # _ADD_UNINSTALL            opt，`_IS_COMPONENT` 关闭时可用，添加卸载命令
-# _UNINSTALL_TEMPLATE       one，`_IS_COMPONENT` 关闭时可用，卸载操作的模板文件（默认：${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in）
+# _UNINSTALL_TEMPLATE       one，`_IS_COMPONENT` 关闭时可用，卸载操作的模板文件（默认：${CMAKE_SOURCE_DIR}/cmake/PKG_cmake_uninstall.cmake.in）
 # _UNINSTALL_ADDITIONAL     mul，`_IS_COMPONENT` 关闭时可用，附加卸载的文件或目录，被附加的文件或目录将在卸载操作进行时一同进行卸载（无默认）
 #
 # @par 全局变量
@@ -237,7 +237,7 @@ function(PKG)
 
     if (__cf__ADD_UNINSTALL)
         if (NOT __cf__UNINSTALL_TEMPLATE OR "${__cf__UNINSTALL_TEMPLATE}" STREQUAL "")
-            set(__cf__UNINSTALL_TEMPLATE "${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in")
+            set(__cf__UNINSTALL_TEMPLATE "${CMAKE_SOURCE_DIR}/cmake/PKG_cmake_uninstall.cmake.in")
             if (NOT EXISTS "${__cf__UNINSTALL_TEMPLATE}")
                 message(FATAL_ERROR "PKG: \"${__cf__UNINSTALL_TEMPLATE}\" file does not exist")
             endif ()

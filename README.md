@@ -192,7 +192,7 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 | _NAME                 | one value   |                                                              | Project Name/Component Name                                  |
 | _PROJECT              | one value   | "${PROJECT_NAME}"                                            | Available when `_IS_COMPONENT` definition, its purpose is to specify the name of the project to which the component belongs |
 | _VERSION              | one value   | propertie VERSION \| Undefined                               | version                                                      |
-| _COMPATIBILITY        | one value   | "AnyNewerVersion"                                            | Defines the version compatibility of the target, supported values:`AnyNewerVersion` | `SameMajorVersion` | `SameMinorVersion` | `ExactVersion` |
+| _COMPATIBILITY        | one value   | "AnyNewerVersion"                                            | Defines the version compatibility of the target, supported values:`AnyNewerVersion` |
 | _DEBUG_POSTFIX        | one value   |                                                              | Add a flag after the file name of the Debug compile file, for example: "D" |
 | _SHARED_LIBS          | option      |                                                              | The value of the `BUILD_SHARED_LIBS` variable that specifies the scope of the function will be used in `PKG_components-config.cmake.in` |
 | _BINARY_DIR           | one value   | "${CMAKE_BINARY_DIR}"                                        | Specifies the binary directory of the project                |
@@ -211,13 +211,13 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 | _MODE                 | one value   | "Development"                                                | Installation mode, supported values: `Runtime` | `Development` |
 | _NAMESPACE            | one value   |                                                              | Use the namespace to install your target, do not add extra '::' |
 | _EXPORT_HEADER        | one value   |                                                              | Here you set the absolute or relative path of the file that creates the export header, relative to the` CMAKE_CURRENT_BINARY_DIR` |
-| _EXPORT_MACRO         | one value   | "\<\_NAME\>\_API" \|<br/>"\<\_PROJECT\>_\<\_NAME\>\_API"         | Macro definitions in the export header                       |
+| _EXPORT_MACRO         | one value   | "\<\_NAME\>\_API" \|<br/>"\<\_PROJECT\>_\<\_NAME\>\_API"     | Macro definitions in the export header                       |
 | _INSTALL_PDB          | option      |                                                              | Install the PDB file, only MSVC is valid                     |
 | _DISABLE_CONFIG       | option      |                                                              | Disable `*-config.cmake` file generation                     |
 | _DISABLE_VERSION      | option      |                                                              | Always disable `*-config-version.cmake` file generation, and if there is no parameter value based on `_VERSION` and propertie `VERSION` for `_NAME` is not defined, `*-config-version.cmake` file will not be generated |
 | _CONFIG_TEMPLATE      | one value   | "\${CMAKE\_SOURCE\_DIR}/<br/>cmake/PKG\_normal-config.cmake.in" \| "\${CMAKE\_SOURCE\_DIR}/<br/>cmake/PKG\_components-config.cmake.in" | The config template file used to generate the `*-config.cmake` file |
 | _ADD_UNINSTALL        | option      |                                                              | Available when `_IS_COMPONENT` is undefined, this parameter is used to add an uninstall command |
-| _UNINSTALL_TEMPLATE   | one value   | "\${CMAKE\_SOURCE\_DIR}/<br/>cmake/cmake\_uninstall.cmake.in"     | Available when `_IS_COMPONENT` is undefined, a template file for unload operations |
+| _UNINSTALL_TEMPLATE   | one value   | "\${CMAKE\_SOURCE\_DIR}/<br/>cmake/PKG_cmake\_uninstall.cmake.in" | Available when `_IS_COMPONENT` is undefined, a template file for unload operations |
 | _UNINSTALL_ADDITIONAL | multi value |                                                              | Available when `_IS_COMPONENT` is undefined, it is used to attach the unloaded file or directory, which is unloaded together with the unload operation |
 
 
