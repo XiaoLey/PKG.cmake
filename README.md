@@ -175,7 +175,7 @@ PKG(
   _DISABLE_VERSION      FALSE
   _CONFIG_TEMPLATE      "${CMAKE_SOURCE_DIR}/cmake/PKG_normal-config.cmake.in" | "${CMAKE_SOURCE_DIR}/cmake/PKG_components-config.cmake.in"
   _ADD_UNINSTALL        FALSE
-  _UNINSTALL_TEMPLATE   "${CMAKE_SOURCE_DIR}/cmake/cmake_uninstall.cmake.in"
+  _UNINSTALL_TEMPLATE   "${CMAKE_SOURCE_DIR}/cmake/PKG_cmake_uninstall.cmake.in"
   _UNINSTALL_ADDITIONAL ""
 )
 
