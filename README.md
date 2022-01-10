@@ -9,15 +9,15 @@ The most concise configuration method for library installation is as follows:
 
 ```cmake
 PKG(
-  _NAME PKG
+  _NAME PKG_lib
   _INCLUDE_DIRS "include/"
 )
 ```
 
-You can then look for `PKG` library in other projects through `find_package()`:
+You can then look for `PKG_lib` library in other projects through `find_package()`:
 
 ```cmake
-find_package(PKG REQUIRED)
+find_package(PKG_lib REQUIRED)
 ```
 
 The most concise configuration method for executable installation is as follows:
@@ -33,7 +33,7 @@ PKG(
 )
 ```
 
-Of course, a custom version number is also an option (if not defined, the function will get from the property "VERSION" of the "\_NAME", if the acquisition fails, versioning is ignored, i.e. the "\*-config-version.cmake" file is not generated). The option \_DISABLE\_VERSION enforces that the "\*-config-version.cmake" file is not generated under any circumstances.
+Of course, a custom version number is also an option (if not defined, the function will get from the property `VERSION` of the `_NAME`, if the acquisition fails, versioning is ignored, i.e. the `*-config-version.cmake` file is not generated). The option `_DISABLE_VERSION` enforces that the `*-config-version.cmake` file is not generated under any circumstances.
 
 A slightly more complete example of a dynamic library installation:
 
@@ -77,7 +77,7 @@ target_include_directories(
 )
 ```
 
-If you want to package a multi-component project, this script will give you great convenience. The function provides two special options, \_IS\_COMPONENT and \_IS\_COMPONENTS. \_IS\_COMPONENT specifies that the current \_NAME target is a component of the project, this component is attached to the \_PROJECT project, \_PROJECT defaults to PROJECT\_NAME when \_IS\_COMPONENT is turned on. \_PROJECT can be customized.
+If you want to package a multi-component project, this script will give you great convenience. The function provides two special options, `_IS_COMPONENT` and `_IS_COMPONENTS`. `_IS_COMPONENT` specifies that the current `_NAME` target is a component of the project, this component is attached to the `_PROJECT` project, `_PROJECT` defaults to `PROJECT_NAME` when `_IS_COMPONENT` is turned on. `_PROJECT` can be customized.
 
 A simple component installation example:
 
@@ -121,7 +121,7 @@ PKG(
 )
 ```
 
-Next, you can use find\_package() in other projects to query the component:
+Next, you can use `find_package()` in other projects to query the component:
 
 ```cmake
 find_package(PKG COMPONENTS component REQUIRED)
@@ -138,9 +138,6 @@ The following is an overview of the function as a whole, including all available
 
 ```cmake
 # Global variables, defined before PKG().
-# If the _BINARY_DIR | _INSTALL_DIR parameter is not customized, 
-# the altered amount value is used as its parameter value, which affects components 
-# attached to <PROJECT>(Use the _PROJECT parameter to specify the subordinate projects that are formed)
 set(PKG_<PROJECT>_BINARY_DIR "...")
 set(PKG_<PROJECT>_INSTALL_DIR "...")
 
@@ -169,7 +166,7 @@ PKG(
   _MODE                 "Development"
   _NAMESPACE            ""
   _EXPORT_HEADER        ""
-  _EXPORT_MACRO         "<_NAME>_API"|"<_PROJECT>_<_NAME>_API"    # TO UPPER CASE
+  _EXPORT_MACRO         "<_NAME>_API"|"<_PROJECT>_<_NAME>_API"    # UPPERCASE
   _INSTALL_PDB          FALSE
   _DISABLE_CONFIG       FALSE
   _DISABLE_VERSION      FALSE
@@ -180,7 +177,6 @@ PKG(
 )
 
 # Automatically defined variables after calling PKG(... _EXPORT_HEADER "..." ...).
-# Export header directory. If the value of _EXPORT_HEADER is "a/b/exp. h", then the variable value will be "a/b".
 message(${PKG_<_PROJECT>_<_NAME>_EXPORT_HEADER_DIR})
 message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 
@@ -216,7 +212,7 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 | _MODE                 | one value   | "Development"                                                | Installation mode, `Runtime` means that header files in `_INSTALL_INCLUDE_DIR` and library files in `_INSTALL_LIB_DIR` are not packaged.<br/>Supported values: `Runtime` \| `Development` |
 | _NAMESPACE            | one value   |                                                              | Use the namespace to install your target, do not add extra '::' |
 | _EXPORT_HEADER        | one value   |                                                              | Here you set the absolute or relative path of the file that creates the export header, relative to the` CMAKE_CURRENT_BINARY_DIR` |
-| _EXPORT_MACRO         | one value   | "\<\_NAME\>\_API" \|<br/>"\<\_PROJECT\>_\<\_NAME\>\_API"     | Macro definitions in the export header                       |
+| _EXPORT_MACRO         | one value   | "\<\_NAME\>\_API" \|<br/>"\<\_PROJECT\>_\<\_NAME\>\_API"     | Macro definitions in the export header(The default macro name will be converted to uppercase, and the custom macro name will not be converted to case). |
 | _INSTALL_PDB          | option      |                                                              | Install the PDB file, only MSVC is valid                     |
 | _DISABLE_CONFIG       | option      |                                                              | Disable `*-config.cmake` file generation                     |
 | _DISABLE_VERSION      | option      |                                                              | Always disable `*-config-version.cmake` file generation, and if there is no parameter value based on `_VERSION` and propertie `VERSION` for `_NAME` is not defined, `*-config-version.cmake` file will not be generated |
