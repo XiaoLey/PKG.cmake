@@ -14,6 +14,16 @@ PKG(
 )
 ```
 
+Then compile and install:
+
+```shell
+mkdir build
+cd build
+cmake ..
+make -j8
+make install
+```
+
 After performing the library installation, you can then look for `PKG_lib` library in other projects through `find_package()`:
 
 ```cmake
