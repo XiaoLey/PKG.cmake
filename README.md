@@ -14,7 +14,7 @@ PKG(
 )
 ```
 
-You can then look for PKG in other projects through find_package():
+You can then look for `PKG` in other projects through `find_package()`:
 
 ```cmake
 find_package(PKG REQUIRED)
@@ -26,6 +26,7 @@ The most concise configuration method for executable installation is as follows:
 PKG(
   _NAME PKG
   _MODE Runtime
+  #_INSTALL_BIN_DIR "."    # You'll probably need this line of code badly on a Windows machine
   _DISABLE_INTERFACE
   _DISABLE_CONFIG
   _DISABLE_VERSION
@@ -153,12 +154,12 @@ PKG(
   _DEBUG_POSTFIX        ""
   _SHARED_LIBS          FALSE
   _BINARY_DIR           "${CMAKE_BINARY_DIR}"
-  _BINARY_BIN_DIR       "<_BINARY_DIR>/bin"
-  _BINARY_LIB_DIR       "<_BINARY_DIR>/lib"
+  _BINARY_BIN_DIR       "bin"
+  _BINARY_LIB_DIR       "lib"
   _INSTALL_DIR          "${CMAKE_INSTALL_PREFIX}"
-  _INSTALL_INCLUDE_DIR  "<_INSTALL_DIR>/include"
-  _INSTALL_BIN_DIR      "<_INSTALL_DIR>/bin"
-  _INSTALL_LIB_DIR      "<_INSTALL_DIR>/lib"
+  _INSTALL_INCLUDE_DIR  "include"
+  _INSTALL_BIN_DIR      "bin"
+  _INSTALL_LIB_DIR      "lib"
   _ADD_LIB_SUFFIX       FALSE
   _INCLUDE_FILES        ""
   _INCLUDE_DIRS         ""
