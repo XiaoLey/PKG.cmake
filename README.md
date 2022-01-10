@@ -14,7 +14,7 @@ PKG(
 )
 ```
 
-You can then look for `PKG` in other projects through `find_package()`:
+You can then look for `PKG` library in other projects through `find_package()`:
 
 ```cmake
 find_package(PKG REQUIRED)
