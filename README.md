@@ -14,6 +14,12 @@ PKG(
 )
 ```
 
+You can then look for PKG in other projects through find_package():
+
+```cmake
+find_package(PKG REQUIRED)
+```
+
 The most concise configuration method for executable installation is as follows:
 
 ```cmake
@@ -190,7 +196,7 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 | _NAME                 | one value   |                                                              | Project Name/Component Name                                  |
 | _PROJECT              | one value   | "${PROJECT_NAME}"                                            | Available when `_IS_COMPONENT` definition, its purpose is to specify the name of the project to which the component belongs |
 | _VERSION              | one value   | propertie VERSION \| Undefined                               | version                                                      |
-| _COMPATIBILITY        | one value   | "AnyNewerVersion"                                            | Defines the version compatibility of the target, supported values:`AnyNewerVersion` \| `SameMajorVersion` \| `SameMinorVersion` \| `ExactVersion` |
+| _COMPATIBILITY        | one value   | "AnyNewerVersion"                                            | Defines the version compatibility of the target.<br/>Supported values:`AnyNewerVersion` \| `SameMajorVersion` \| `SameMinorVersion` \| `ExactVersion` |
 | _DEBUG_POSTFIX        | one value   |                                                              | Add a flag after the file name of the Debug compile file, for example: "D" |
 | _SHARED_LIBS          | option      |                                                              | The value of the `BUILD_SHARED_LIBS` variable that specifies the scope of the function will be used in `PKG_components-config.cmake.in` |
 | _BINARY_DIR           | one value   | "${CMAKE_BINARY_DIR}"                                        | Specifies the binary directory of the project                |
@@ -206,7 +212,7 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 | _INCLUDE_EXCLUDE_REG  | one value   |                                                              | The regular expression that matches the full path of the file or directory is ignored when the target public header is installed |
 | _INCLUDE_DESTINATION  | one value   | "<_INSTALL_INCLUDE_DIR>"                                     | The `INSTALL_INTERFACE` that matches the target contains directories |
 | _DISABLE_INTERFACE    | option      |                                                              | It is forbidden to include the directory specified by the `_INCLUDE_DESTINATION` in the `INSTALL_INTERFACE` |
-| _MODE                 | one value   | "Development"                                                | Installation mode, supported values: `Runtime` \| `Development` |
+| _MODE                 | one value   | "Development"                                                | Installation mode, `Runtime` means that header files in `_INSTALL_INCLUDE_DIR` and library files in `_INSTALL_LIB_DIR` are not packaged.<br/>Supported values: `Runtime` \| `Development` |
 | _NAMESPACE            | one value   |                                                              | Use the namespace to install your target, do not add extra '::' |
 | _EXPORT_HEADER        | one value   |                                                              | Here you set the absolute or relative path of the file that creates the export header, relative to the` CMAKE_CURRENT_BINARY_DIR` |
 | _EXPORT_MACRO         | one value   | "\<\_NAME\>\_API" \|<br/>"\<\_PROJECT\>_\<\_NAME\>\_API"     | Macro definitions in the export header                       |
