@@ -421,13 +421,20 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 - #### \_EXPORT\_HEADER
 
   - <b>Type: </b> one value
-  - <b>Description:</b> Here you set the absolute or relative path of the file that creates the export header, relative to the` CMAKE_CURRENT_BINARY_DIR`.
+  - <b>Description:</b> Here you set the absolute or relative path of the file that creates the export header, relative to the` CMAKE_CURRENT_BINARY_DIR`. It installs to the directory specified by `_INSTALL_INCLUDE_DIR`
+  - <b>NOTE:</b> When the value of `_MODE` is `Runtime`, it will only export the export header and not install the export header, which means that it will not be installed in the `_INSTALL_INCLUDE_DIR`
 
 - #### \_EXPORT\_MACRO
 
   - <b>Type: </b> one value
   - <b>Default:</b> "\<\_NAME\>\_API" \| "\<\_PROJECT\>\_\<_NAME\>\_API"
   - <b>Description:</b> Macro in the export header(The default macro name will be converted to uppercase, and the custom macro name will not be converted to case).
+
+- #### \_EXPORT\_INSTALL\_DIR
+
+  - <b>Type: </b> one value
+  - <b>Default:</b> "\<\_INSTALL\_INCLUDE\_DIR\>"
+  - <b>Description:</b> The installation path for the export header, which can be absolute or relative, relative to the `_INSTALL_DIR`.
 
 - #### \_INSTALL\_PDB
 

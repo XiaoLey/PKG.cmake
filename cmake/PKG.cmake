@@ -48,8 +48,8 @@ function(PKG)
     set(
       __oneValueArgs
       _NAME _PROJECT _VERSION _COMPATIBILITY _DEBUG_POSTFIX _BINARY_DIR _BINARY_BIN_DIR
-      _BINARY_LIB_DIR _NAMESPACE _EXPORT_HEADER _EXPORT_MACRO _CONFIG_TEMPLATE
-      _INCLUDE_EXCLUDE_REG _MODE _INCLUDE_DESTINATION
+      _BINARY_LIB_DIR _NAMESPACE _EXPORT_HEADER _EXPORT_MACRO _EXPORT_INSTALL_DIR
+      _CONFIG_TEMPLATE _INCLUDE_EXCLUDE_REG _MODE _INCLUDE_DESTINATION
       _INSTALL_DIR _INSTALL_INCLUDE_DIR _INSTALL_BIN_DIR _INSTALL_LIB_DIR
       _UNINSTALL_TEMPLATE
     )
@@ -211,6 +211,14 @@ function(PKG)
         endif ()
         set(__cf__EXPORT_MACRO "${__export_macro}")
         PKG_unset(__export_macro)
+    endif ()
+
+    if (NOT __cf__EXPORT_INSTALL_DIR OR "${__cf__EXPORT_INSTALL_DIR}" STREQUAL "")
+        set(__cf__EXPORT_INSTALL_DIR "${__cf__INSTALL_INCLUDE_DIR}")
+    else ()
+        if (NOT "${__cf__EXPORT_INSTALL_DIR}" MATCHES "^[a-zA-Z]:|^/")
+            set(__cf__EXPORT_INSTALL_DIR "${__cf__INSTALL_DIR}/${__cf__INSTALL_INCLUDE_DIR}")
+        endif ()
     endif ()
 
     if (NOT __cf__DISABLE_CONFIG)
@@ -789,7 +797,7 @@ function(PKG_generate_export_header target_name)
     if ("${__cf__MODE}" STREQUAL "Development")
         install(
           FILES "${__cf__EXPORT_HEADER}"
-          DESTINATION "${__cf__INSTALL_INCLUDE_DIR}"
+          DESTINATION "${__cf__EXPORT_INSTALL_DIR}"
           COMPONENT Development
           PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ
         )
