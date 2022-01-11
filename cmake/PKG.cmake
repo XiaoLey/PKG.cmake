@@ -217,7 +217,7 @@ function(PKG)
         set(__cf__EXPORT_INSTALL_DIR "${__cf__INSTALL_INCLUDE_DIR}")
     else ()
         if (NOT "${__cf__EXPORT_INSTALL_DIR}" MATCHES "^[a-zA-Z]:|^/")
-            set(__cf__EXPORT_INSTALL_DIR "${__cf__INSTALL_DIR}/${__cf__INSTALL_INCLUDE_DIR}")
+            set(__cf__EXPORT_INSTALL_DIR "${__cf__INSTALL_DIR}/${__cf__EXPORT_INSTALL_DIR}")
         endif ()
     endif ()
 
