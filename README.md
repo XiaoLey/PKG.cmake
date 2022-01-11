@@ -43,7 +43,7 @@ PKG(
 )
 ```
 
-Of course, a custom version number is also an option (if not defined, the function will get from the property `VERSION` of the `_NAME`, if the acquisition fails, versioning is ignored, i.e. the `*-config-version.cmake` file is not generated). The option `_DISABLE_VERSION` enforces that the `*-config-version.cmake` file is not generated under any circumstances.
+Of course, a custom version number is also an keyword (if not defined, the function will get from the property `VERSION` of the `_NAME`, if the acquisition fails, versioning is ignored, i.e. the `*-config-version.cmake` file is not generated). The option `_DISABLE_VERSION` enforces that the `*-config-version.cmake` file is not generated under any circumstances.
 
 A slightly more complete example of a dynamic library installation:
 
@@ -67,6 +67,8 @@ PKG(
   #_VERSION 1.2.3.4         # Automatically gets the PKG_shared propertie VERSION
   _DEBUG_POSTFIX "d"        # Equivalent to `set_target_properties(PKG_shared PROPERTIES DEBUG_POSTFIX "d")`
   _NAMESPACE "PKGNS"
+  _INSTALL_EXT_FILES_1 "doc/documents.doc" "doc"
+  _INSTALL_EXT_DIRS_1 "docs/" "doc"
   _INCLUDE_DIRS "include/"
   _INCLUDE_EXCLUDE_REG ".*\\.(svn|h\\.in|hpp\\.in)$"
   _INCLUDE_DESTINATION "include/${PROJECT_NAME}-1.2.3.4"
@@ -87,7 +89,7 @@ target_include_directories(
 )
 ```
 
-If you want to package a multi-component project, this script will give you great convenience. The function provides two special options, `_IS_COMPONENT` and `_IS_COMPONENTS`. `_IS_COMPONENT` specifies that the current `_NAME` target is a component of the project, this component is attached to the `_PROJECT` project, `_PROJECT` defaults to `PROJECT_NAME` when `_IS_COMPONENT` is defined. `_PROJECT` can be customized.
+If you want to package a multi-component project, this script will give you great convenience. The function provides two special options, `_IS_COMPONENT` and `_IS_COMPONENTS`. `_IS_COMPONENT` means that the current `_NAME` target is a component of the project, this component is attached to the `_PROJECT` project, `_PROJECT` defaults to `PROJECT_NAME` when `_IS_COMPONENT` is defined. `_PROJECT` can be customized.
 
 A simple component installation example:
 
@@ -144,7 +146,7 @@ target_link_libraries(... PRIVATE PKG::component)
 
 ## Functions Overview
 
-The following is an overview of the function as a whole, including all available parameters and their corresponding default values (remember not to copy and use them directly):
+The following is an overview of the function as a whole, including all available keywords and their corresponding default values (remember not to copy and use them directly):
 
 ```cmake
 # Global variables, defined before PKG().
@@ -152,38 +154,41 @@ set(PKG_<PROJECT>_BINARY_DIR "...")
 set(PKG_<PROJECT>_INSTALL_DIR "...")
 
 PKG(
-  _IS_COMPONENT         FALSE
-  _IS_COMPONENTS        FALSE
-  _NAME                 ""
-  _PROJECT              "${PROJECT_NAME}" | ""        # _IS_COMPONENT is undefined, the value is always empty
-  _VERSION              propertie VERSION | ""
-  _COMPATIBILITY        "AnyNewerVersion"
-  _DEBUG_POSTFIX        ""
-  _SHARED_LIBS          FALSE
-  _BINARY_DIR           "${CMAKE_BINARY_DIR}"
-  _BINARY_BIN_DIR       "bin"
-  _BINARY_LIB_DIR       "lib"
-  _INSTALL_DIR          "${CMAKE_INSTALL_PREFIX}"
-  _INSTALL_INCLUDE_DIR  "include"
-  _INSTALL_BIN_DIR      "bin"
-  _INSTALL_LIB_DIR      "lib"
-  _ADD_LIB_SUFFIX       FALSE
-  _INCLUDE_FILES        ""
-  _INCLUDE_DIRS         ""
-  _INCLUDE_EXCLUDE_REG  ""
-  _INCLUDE_DESTINATION  "<_INSTALL_INCLUDE_DIR>"
-  _DISABLE_INTERFACE    FALSE
-  _MODE                 "Development"
-  _NAMESPACE            ""
-  _EXPORT_HEADER        ""
-  _EXPORT_MACRO         "<_NAME>_API"|"<_PROJECT>_<_NAME>_API"    # UPPERCASE
-  _INSTALL_PDB          FALSE
-  _DISABLE_CONFIG       FALSE
-  _DISABLE_VERSION      FALSE
-  _CONFIG_TEMPLATE      "${CMAKE_SOURCE_DIR}/cmake/PKG_normal-config.cmake.in" | "${CMAKE_SOURCE_DIR}/cmake/PKG_components-config.cmake.in"
-  _ADD_UNINSTALL        FALSE
-  _UNINSTALL_TEMPLATE   "${CMAKE_SOURCE_DIR}/cmake/PKG_cmake_uninstall.cmake.in"
-  _UNINSTALL_ADDITIONAL ""
+  _IS_COMPONENT          FALSE
+  _IS_COMPONENTS         FALSE
+  _NAME                  ""
+  _PROJECT               "${PROJECT_NAME}" | ""        # _IS_COMPONENT is undefined, the value is always empty
+  _VERSION               propertie VERSION | ""
+  _COMPATIBILITY         "AnyNewerVersion"
+  _DEBUG_POSTFIX         ""
+  _SHARED_LIBS           FALSE
+  _BINARY_DIR            "${CMAKE_BINARY_DIR}"
+  _BINARY_BIN_DIR        "bin"
+  _BINARY_LIB_DIR        "lib"
+  _INSTALL_DIR           "${CMAKE_INSTALL_PREFIX}"
+  _INSTALL_INCLUDE_DIR   "include"
+  _INSTALL_BIN_DIR       "bin"
+  _INSTALL_LIB_DIR       "lib"
+  _ADD_LIB_SUFFIX        FALSE
+  _INSTALL_EXT_FILES_<N> ""...
+  _INSTALL_EXT_DIRS_<N>  ""...
+  _INCLUDE_FILES         ""
+  _INCLUDE_DIRS          ""
+  _INCLUDE_EXCLUDE_REG   ""
+  _INCLUDE_DESTINATION   "<_INSTALL_INCLUDE_DIR>"
+  _DISABLE_INTERFACE     FALSE
+  _MODE                  "Development"
+  _NAMESPACE             ""
+  _EXPORT_HEADER         ""
+  _EXPORT_MACRO          "<_NAME>_API"|"<_PROJECT>_<_NAME>_API"    # UPPERCASE
+  _INSTALL_PDB           FALSE
+  _DISABLE_CONFIG        FALSE
+  _DISABLE_VERSION       FALSE
+  _CONFIG_TEMPLATE       "${CMAKE_SOURCE_DIR}/cmake/PKG_normal-config.cmake.in" | "${CMAKE_SOURCE_DIR}/cmake/PKG_components-config.
+  cmake.in"
+  _ADD_UNINSTALL         FALSE
+  _UNINSTALL_TEMPLATE    "${CMAKE_SOURCE_DIR}/cmake/PKG_cmake_uninstall.cmake.in"
+  _UNINSTALL_ADDITIONAL  ""
 )
 
 # Automatically defined variables after calling PKG(... _EXPORT_HEADER "..." ...).
@@ -194,62 +199,244 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 
 
 
-## Parameter Introduction
+## Keyword Descriptions
 
-| Parameter Name        | Type | Default Value                                                | Illustrate                                                   |
-| --------------------- | ---- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| _IS_COMPONENT         | opt  |                                                              | The components of the `_PROJECT` project are currently being installed |
-| _IS_COMPONENTS        | opt  |                                                              | A component set project is currently being installed, and a component set project cannot be a buildable target |
-| _NAME                 | one  |                                                              | Project Name/Component Name                                  |
-| _PROJECT              | one  | "${PROJECT_NAME}"                                            | Available when `_IS_COMPONENT` definition, its purpose is to specify the name of the project to which the component belongs |
-| _VERSION              | one  | propertie VERSION \| Undefined                               | version                                                      |
-| _COMPATIBILITY        | one  | "AnyNewerVersion"                                            | Defines the version compatibility of the target.<br/>Supported values:`AnyNewerVersion` \| `SameMajorVersion` \| `SameMinorVersion` \| `ExactVersion` |
-| _DEBUG_POSTFIX        | one  |                                                              | Add a flag after the file name of the Debug compile file, for example: "D" |
-| _SHARED_LIBS          | opt  |                                                              | The value of the `BUILD_SHARED_LIBS` variable that specifies the scope of the function will be used in `PKG_components-config.cmake.in` |
-| _BINARY_DIR           | one  | "${CMAKE_BINARY_DIR}"                                        | Specifies the binary directory of the project                |
-| _BINARY_BIN_DIR       | one  | "bin"                                                        | Specifies the runtime directory of the project's binary directory, relative to `_BINARY_DIR`, and can also define an absolute path |
-| _BINARY_LIB_DIR       | one  | "lib"                                                        | Specifies the library directory of the project's binary directory, relative to `_BINARY_DIR`, and can also define an absolute path |
-| _INSTALL_DIR          | one  | "${CMAKE_INSTALL_PREFIX}"                                    | Specifies the installation directory for the project         |
-| _INSTALL_INCLUDE_DIR  | one  | "include"                                                    | Specifies the include directory of the project's installation directory, relative to `_INSTALL_DIR`, or to define an absolute path |
-| _INSTALL_BIN_DIR      | one  | "bin"                                                        | Specifies the runtime directory of the project's installation directory, relative to `_INSTALL_DIR`, and can also define an absolute path |
-| _INSTALL_LIB_DIR      | one  | "lib"                                                        | Specifies the library directory of the project's installation directory, relative to `_INSTALL_DIR`, or to define an absolute path |
-| _ADD_LIB_SUFFIX       | opt  |                                                              | Add the suffix "64" to the library directory name, which is valid only for 64-bit systems |
-| _INCLUDE_FILES        | mul  |                                                              | The file location of the target public header, which can be an absolute or relative path, relative to `CMAKE_CURRENT_SOURCE_DIR`, supports generator expressions |
-| _INCLUDE_DIRS         | mul  |                                                              | The directory location of the target public header, which can be absolute or relative, relative to `CMAKE_CURRENT_SOURCE_DIR`, supports generator expressions |
-| _INCLUDE_EXCLUDE_REG  | one  |                                                              | The regular expression that matches the full path of the file or directory is ignored when the target public header is installed |
-| _INCLUDE_DESTINATION  | one  | "<_INSTALL_INCLUDE_DIR>"                                     | The `INSTALL_INTERFACE` that matches the target contains directories |
-| _DISABLE_INTERFACE    | opt  |                                                              | It is forbidden to include the directory specified by the `_INCLUDE_DESTINATION` in the `INSTALL_INTERFACE` |
-| _MODE                 | one  | "Development"                                                | Installation mode, `Runtime` means that header files in `_INSTALL_INCLUDE_DIR` and library files in `_INSTALL_LIB_DIR` are not packaged.<br/>Supported values: `Runtime` \| `Development` |
-| _NAMESPACE            | one  |                                                              | Use the namespace to install your target, do not add extra '::' |
-| _EXPORT_HEADER        | one  |                                                              | Here you set the absolute or relative path of the file that creates the export header, relative to the` CMAKE_CURRENT_BINARY_DIR` |
-| _EXPORT_MACRO         | one  | "\<\_NAME\>\_API" \|<br/>"\<\_PROJECT\>_\<\_NAME\>\_API"     | Macro definitions in the export header(The default macro name will be converted to uppercase, and the custom macro name will not be converted to case). |
-| _INSTALL_PDB          | opt  |                                                              | Install the PDB file, only MSVC is valid                     |
-| _DISABLE_CONFIG       | opt  |                                                              | Disable `*-config.cmake` file generation                     |
-| _DISABLE_VERSION      | opt  |                                                              | Always disable `*-config-version.cmake` file generation, and if there is no parameter value based on `_VERSION` and propertie `VERSION` for `_NAME` is not defined, `*-config-version.cmake` file will not be generated |
-| _CONFIG_TEMPLATE      | one  | "\${CMAKE\_SOURCE\_DIR}/cmake/<br/>PKG\_normal-config.cmake.in" \| "\${CMAKE\_SOURCE\_DIR}/<br/>cmake/PKG\_components-config.cmake.in" | The config template file used to generate the `*-config.cmake` file |
-| _ADD_UNINSTALL        | opt  |                                                              | Available when `_IS_COMPONENT` is undefined, this parameter is used to add an uninstall command |
-| _UNINSTALL_TEMPLATE   | one  | "\${CMAKE\_SOURCE\_DIR}/cmake/<br/>PKG_cmake\_uninstall.cmake.in" | Available when `_IS_COMPONENT` is undefined, a template file for unload operations |
-| _UNINSTALL_ADDITIONAL | mul  |                                                              | Available when `_IS_COMPONENT` is undefined, it is used to attach the unloaded file or directory, which is unloaded together with the unload operation |
+- #### \_IS\_COMPONENT
 
-note: `opt` stands for `option` type; `one` stands for `one value` type; `mul` stands for `multi value` type.
+	- <b>Type:</b> option
+	- <b>Description:</b> The component of the `_PROJECT` project are currently being installed.
+
+- #### \_IS\_COMPONENTS
+
+  - <b>Type: </b> option
+  - <b>Description:</b> Current target `_NAME` is a multi-component project and is being installed
+  - <b>Note:</b> Multi-component Project cannot be a buildable target.
+
+- #### \_NAME
+
+	- <b>Type: </b> one value
+	- <b>Description:</b> Project Name / Multi-component Project Name / Component Name
+
+- #### \_PROJECT
+
+	- <b>Type: </b> one value
+	- <b>Default:</b> "${PROJECT_NAME}" \| Undefined
+	- <b>Description:</b> Available when `_IS_COMPONENT` definition, its purpose is to specify the name of the project to which the component belongs.
+	
+- #### \_VERSION
+
+  - <b>Type: </b> one value
+  - <b>Default:</b> propertie VERSION \| Undefined
+  - <b>Description:</b> version
+
+- #### \_COMPATIBILITY
+
+  - <b>Type: </b> one value
+  - <b>Default:</b> "AnyNewerVersion"
+  - <b>Description:</b> Defines the version compatibility of the `_NAME` target. Supported values:`AnyNewerVersion` \| `SameMajorVersion` \| `SameMinorVersion` \| `ExactVersion`.
+
+- #### \_DEBUG\_POSTFIX
+
+  - <b>Type: </b> one value
+
+  - <b>Description:</b> In the Debug configuration, add a postfix after the compiled target file, for example: "d".
+
+- #### \_SHARED\_LIBS
+
+  - <b>Type: </b> option
+  - <b>Description:</b> The value of the `BUILD_SHARED_LIBS` variable that specifies the scope of the function will be used in `PKG_components-config.cmake.in`.
+
+- #### \_BINARY\_DIR
+
+  - <b>Type: </b> one value
+  - <b>Default:</b> "${CMAKE_BINARY_DIR}"
+  - <b>Description:</b> Specifies the binary directory of the target.
+
+- #### \_BINARY\_BIN\_DIR
+
+  - <b>Type: </b> one value
+  - <b>Default:</b> "bin"
+  - <b>Description:</b> Specifies the runtime directory of the target's binary directory, relative to `_BINARY_DIR`, and can also define an absolute path.
+
+- #### \_BINARY\_LIB\_DIR
+
+  - <b>Type: </b> one value
+  - <b>Default:</b> "lib"
+  - <b>Description:</b> Specifies the library directory of the target's binary directory, relative to `_BINARY_DIR`, and can also define an absolute path.
+
+- #### \_INSTALL\_DIR
+
+  - <b>Type: </b> one value
+  - <b>Default:</b> "${CMAKE_INSTALL_PREFIX}"
+  - <b>Description:</b> Specifies the installation directory for the target.
+
+- #### \_INSTALL\_INCLUDE\_DIR
+
+  - <b>Type: </b> one value
+  - <b>Default:</b> "include"
+  - <b>Description:</b> Specifies the include directory of the target's installation directory, relative to `_INSTALL_DIR`, or to define an absolute path.
+
+- #### \_INSTALL\_BIN\_DIR
+
+  - <b>Type: </b> one value
+  - <b>Default:</b> "bin"
+  - <b>Description:</b> Specifies the runtime directory of the target's installation directory, relative to `_INSTALL_DIR`, and can also define an absolute path.
+
+- #### \_INSTALL\_LIB\_DIR
+
+  - <b>Type: </b> one value
+  - <b>Default:</b> "lib"
+  - <b>Description:</b> Specifies the library directory of the target's installation directory, relative to `_INSTALL_DIR`, or to define an absolute path.
+
+- #### \_ADD\_LIB\_SUFFIX
+
+  - <b>Type: </b> option
+  - <b>Description:</b> Add the suffix "64" to the library directory name, which is valid only for 64-bit systems.
+
+- #### \_INSTALL\_EXT\_FILES\_\<N\>
+
+  - <b>Type: </b> multi value
+
+  - <b>Description:</b> Install custom additional files, the keyword can specify one or more files, either absolute or relative to the path of the `CMAKE_CURRENT_SOURCE_DIR`, and the last parameter specified is the target path of the installation (the specified files will be installed here), which can be absolute or relative to the path of the `_INSTALL_DIR`.
+
+  - <b>Note:</b> This keyword is not allowed after keywords of other `multi` types other than `_INSTALL_EXT_FILES_<N>` and `_INSTALL_EXT_DIRS_<N>`.
+
+  - <b>Example:</b>
+    
+    ```cmake
+    PKG(
+      ...
+      # _INSTALL_DIR "${CMAKE_INSTALL_PREFIX}"    # default value, it does not need to be specified explicitly
+      _INSTALL_EXT_FILES_1 "doc/helper.doc" "doc/documents.doxygen" "doc"
+      _INSTALL_EXT_FILES_2 "include/pkg.h.in" "include/tmp"
+      _INSTALL_EXT_FILES_n ...
+      ...
+    )
+    ```
+
+  #### \_INSTALL\_EXT\_DIRS\_\<N\>
+
+  - <b>Type: </b> multi value
+
+  - <b>Description:</b> Install custom additional directories, the keyword can specify one or more directories, either absolute or relative to the path of the `CMAKE_CURRENT_SOURCE_DIR`, and the last parameter specified is the target path of the installation (the specified directories will be installed here), which can be absolute or relative to the path of the `_INSTALL_DIR`.
+
+  - <b>Note:</b> This keyword is not allowed after keywords of other `multi` types other than `_INSTALL_EXT_FILES_<N>` and `_INSTALL_EXT_DIRS_<N>`.
+
+  - <b>Example:</b>
+
+    ```cmake
+    PKG(
+      ...
+      # _INSTALL_DIR "${CMAKE_INSTALL_PREFIX}"    # default value, it does not need to be specified explicitly
+      _INSTALL_EXT_DIRS_1 "doc/" "document" "doc"
+      _INSTALL_EXT_DIRS_2 "include/tmp/" "include/tmp"    # eq: _INSTALL_EXT_DIRS_2 "include/tmp" "include"
+      _INSTALL_EXT_DIRS_n ...
+      ...
+    )
+    ```
+
+- #### \_INCLUDE\_FILES
+
+  - <b>Type: </b> multi value
+  - <b>Description:</b> Files location of the target public headers, which can be an absolute or relative path, relative to `CMAKE_CURRENT_SOURCE_DIR`, supports generator expressions.
+
+- #### \_INCLUDE\_DIRS
+
+  - <b>Type: </b> multi value
+  - <b>Description:</b> Directories location of the target public headers, which can be absolute or relative, relative to `CMAKE_CURRENT_SOURCE_DIR`, supports generator expressions.
+
+- #### \_INCLUDE\_EXCLUDE\_REG
+
+  - <b>Type: </b> one value
+  - <b>Description:</b> The regular expression that matches the full path of the files or directoryies is ignored when the target public headers are installed.
+
+- #### \_INCLUDE\_DESTINATION
+
+  - <b>Type: </b> one value
+  - <b>Default:</b> "\<_INSTALL_INCLUDE_DIR\>"
+  - <b>Description:</b> The `INSTALL_INTERFACE` that matches the target contains directory.
+
+- #### \_DISABLE\_INTERFACE
+
+  - <b>Type: </b> option
+  - <b>Description:</b> It is forbidden to include the directory specified by the `_INCLUDE_DESTINATION` in the `INSTALL_INTERFACE`.
+
+- #### \_MODE
+
+  - <b>Type: </b> one value
+  - <b>Default:</b> "Development"
+  - <b>Description:</b> Installation mode, `Runtime` means that header files in `_INSTALL_INCLUDE_DIR` and library files in `_INSTALL_LIB_DIR` are not packaged. Supported values: `Runtime` \| `Development`.
+
+- #### \_NAMESPACE
+
+  - <b>Type: </b> one value
+  - <b>Description:</b> Use the namespace to install your target, do not add extra '::'.
+
+- #### \_EXPORT\_HEADER
+
+  - <b>Type: </b> one value
+  - <b>Description:</b> Here you set the absolute or relative path of the file that creates the export header, relative to the` CMAKE_CURRENT_BINARY_DIR`.
+
+- #### \_EXPORT\_MACRO
+
+  - <b>Type: </b> one value
+  - <b>Default:</b> "\<\_NAME\>\_API" \| "\<\_PROJECT\>\_\<_NAME\>\_API"
+  - <b>Description:</b> Macro in the export header(The default macro name will be converted to uppercase, and the custom macro name will not be converted to case).
+
+- #### \_INSTALL\_PDB
+
+  - <b>Type: </b> option
+  - <b>Description:</b> Install the PDB file, only MSVC is valid.
+
+- #### \_DISABLE\_CONFIG
+
+  - <b>Type: </b> option
+  - <b>Description:</b> Disable `*-config.cmake` file generation.
+
+- #### \_DISABLE\_VERSION
+
+  - <b>Type: </b> option
+  - <b>Description:</b> Always disable `*-config-version.cmake` file generation, and if there is no value based on `_VERSION` and propertie `VERSION` for `_NAME` is not defined, `*-config-version.cmake` file will not be generated.
+
+- #### \_CONFIG\_TEMPLATE
+
+  - <b>Type: </b> one value
+  - <b>Default:</b> "\${CMAKE\_SOURCE\_DIR}/cmake/PKG\_normal-config.cmake.in" \| "\${CMAKE\_SOURCE\_DIR}/cmake/PKG\_components-config.cmake.in"
+  - <b>Description:</b> The config template file used to generate the `*-config.cmake` file.
+
+- #### \_ADD\_UNINSTALL
+
+  - <b>Type: </b> option
+  - <b>Description:</b> Available when `_IS_COMPONENT` is undefined, this keyword is used to add an uninstall command. If the `_IS_COMPONENT` is defined, `_ADD_UNINSTALL` is always mandatory to be defined as `FALSE`.
+
+- #### \_UNINSTALL\_TEMPLATE
+
+  - <b>Type: </b> one value
+  - <b>Default:</b> "\${CMAKE\_SOURCE\_DIR}/cmake/ PKG\_cmake\_uninstall.cmake.in"
+  - <b>Description:</b> Available when `_ADD_UNINSTALL` is TRUE, a template file for unload operation.
+
+- #### \_UNINSTALL\_ADDITIONAL
+
+  - <b>Type: </b> multi value
+  - <b>Description:</b> Available when `_ADD_UNINSTALL` is TRUE, it is used to attach the unloaded files or directories, which is unloaded together with the unload operation.
 
 
 
 ## Global Variables
 
-If the `_BINARY_DIR` | `_INSTALL_DIR` parameter is not customized, the altered amount value is used as its parameter value, which affects components attached to \<PROJECT\>(Use the `_PROJECT` parameter to specify the subordinate projects that are formed).
+If the `_BINARY_DIR` \| `_INSTALL_DIR` keyword is not customized, the altered amount value is used as `_BINARY_DIR` keyword value which the value of `_NAME` is `<PROJECT> `, which affects components attached to \<PROJECT\>(Use the `_PROJECT` keyword to specify the subordinate projects that are formed).
 
-- `PKG_<PROJECT>_BINARY_DIR`
+- <b>`PKG_<PROJECT>_BINARY_DIR`</b>
+- <b>`PKG_<PROJECT>_INSTALL_DIR`</b>
 
-- `PKG_<PROJECT>_INSTALL_DIR`
 
-  
+
 
 ## Export Variables
 
-Automatically defined variables after calling PKG(... _EXPORT_HEADER "..." ...)
+Automatically defined variables after calling PKG(... \_EXPORT\_HEADER "..." ...)
 
-Export header directory. If the value of _EXPORT_HEADER is "a/b/exp. h", then the variable value will be "a/b".
+Export header directory. If the value of `_EXPORT_HEADER` is "a/b/exp. h", then the variable value will be "a/b".
 
-- `PKG_<_PROJECT>_<_NAME>_EXPORT_HEADER_DIR` Valid when _IS_COMPONENT is TRUE
-- `PKG_<_NAME>_EXPORT_HEADER_DIR`            Valid when neither the _IS_COMPONENT nor the _IS_COMPONENTS is defined
+- <b>`PKG_<_PROJECT>_<_NAME>_EXPORT_HEADER_DIR` </b>Valid when `_IS_COMPONENT` is defined
+- <b>`PKG_<_NAME>_EXPORT_HEADER_DIR`  </b>Valid when neither the `_IS_COMPONENT` nor the `_IS_COMPONENTS` is defined

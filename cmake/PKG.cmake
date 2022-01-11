@@ -30,7 +30,7 @@
 # cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
 
 # PKG.cmake version control
-set(CURRENT_PKG_VERSION 0.1-release)
+set(CURRENT_PKG_VERSION 0.3-beta)
 if (NOT "${CURRENT_PKG_VERSION}" MATCHES "-release$")
     message(WARNING "PKG: The current PKG.cmake is not a stable version, if you want to use stable functions, please download the release version.")
 endif ()
@@ -40,7 +40,6 @@ endif ()
 #
 # @brief Quickly package projects or multi-component projects
 function(PKG)
-    include(CMakeParseArguments)
     set(
       __options
       _IS_COMPONENT _IS_COMPONENTS _ADD_LIB_SUFFIX _DISABLE_INTERFACE _INSTALL_PDB
@@ -58,7 +57,7 @@ function(PKG)
       __multiValueArgs
       _INCLUDE_FILES _INCLUDE_DIRS _UNINSTALL_ADDITIONAL
     )
-    cmake_parse_arguments(__cf "${__options}" "${__oneValueArgs}" "${__multiValueArgs}" "${ARGN}")
+    cmake_parse_arguments(PARSE_ARGV 0 __cf "${__options}" "${__oneValueArgs}" "${__multiValueArgs}")
     PKG_unset(__options __oneValueArgs __multiValueArgs)
 
 
@@ -241,6 +240,41 @@ function(PKG)
     endif ()
 
 
+    # Load _INSTALL_EXT_FILES_<N> and _INSTALL_EXT_DIRS_<N>
+    set(__install_files_dirs "${__cf_UNPARSED_ARGUMENTS}")
+    list(FILTER __install_files_dirs INCLUDE REGEX "^_INSTALL_EXT_(FILES|DIRS)_[0-9]+$")
+    cmake_parse_arguments(__install "" "" "${__install_files_dirs}" "${__cf_UNPARSED_ARGUMENTS}")
+    # Arguments of _INSTALL_EXT_FILES_<N> and _INSTALL_EXT_DIRS_<N> are not allowed to have only one
+    foreach (__file_dir IN LISTS __install_files_dirs)
+        # Make sure all __install__INSTALL_... have two or more arguments, otherwise ignore this keyword
+        list(LENGTH __install_${__file_dir} __count)
+        if (__count LESS_EQUAL 1)
+            message(WARNING "PKG: Insufficient arguments to ${__file_dir} (two or more required), it will be ignored")
+            # Delete the keyword and end the loop early
+            list(REMOVE_ITEM __install_files_dirs "${__file_dir}")
+            continue()
+        endif ()
+
+        # Get the value at the end of the list
+        math(EXPR __last_index "${__count} - 1")
+        list(GET __install_${__file_dir} ${__last_index} __last_value)
+        # If it is not an absolute path, it becomes an absolute path
+        if (NOT "${__last_value}" MATCHES "^[a-zA-Z]:|^/")
+            set(__last_value "${__cf__INSTALL_DIR}/${__last_value}")
+        endif ()
+        # Make sure the last item of all __install__INSTALL_EXT_... is not an existing file
+        # (because file cannot be used as installation directoriy)
+        if (EXISTS "${__last_value}" AND NOT IS_DIRECTORY "${__last_value}")
+            message(FATAL_ERROR "PKG: The last argument given by ${__file_dir} is an existing file, which is not allowed")
+        endif ()
+
+        # Remove the original last item and put the revised last element (ie "the installation directory of the file or project")
+        list(POP_BACK __install_${__file_dir})
+        list(APPEND __install_${__file_dir} "${__last_value}")
+    endforeach ()
+    PKG_unset(__file_dir __count __last_index __last_value)
+
+
     if (NOT __cf__IS_COMPONENTS)
         # Use the GenerateExportHeader module to create export headers
         if (DEFINED __cf__EXPORT_HEADER AND NOT "${__cf__EXPORT_HEADER}" STREQUAL "")
@@ -299,11 +333,23 @@ function(PKG)
     endif ()
 
 
+    # Install custom additional files and directories
+    foreach (__file_dir IN LISTS __install_files_dirs)
+        if ("${__file_dir}" MATCHES "_INSTALL_EXT_FILES_")
+            PKG_install_files("${__install_${__file_dir}}")
+        else ()
+            PKG_install_dirs("${__install_${__file_dir}}")
+        endif ()
+    endforeach ()
+
+
     # Add uninstall command
-    if (NOT __cf__UNINSTALL_ADDITIONAL OR "${__cf__UNINSTALL_ADDITIONAL}" STREQUAL "")
-        add_uninstall_command()
-    else ()
-        add_uninstall_command("${__cf__UNINSTALL_ADDITIONAL}")
+    if (__cf__ADD_UNINSTALL)
+        if (NOT __cf__UNINSTALL_ADDITIONAL OR "${__cf__UNINSTALL_ADDITIONAL}" STREQUAL "")
+            add_uninstall_command()
+        else ()
+            add_uninstall_command("${__cf__UNINSTALL_ADDITIONAL}")
+        endif ()
     endif ()
 endfunction()
 
@@ -417,33 +463,45 @@ function(PKG_install_includes target_name)
     if ("${__cf__MODE}" STREQUAL "Development")
         if (DEFINED __cf__INCLUDE_DIRS AND NOT "${__cf__INCLUDE_DIRS}" STREQUAL "")
             if (DEFINED __cf__INCLUDE_EXCLUDE_REG AND NOT "${__cf__INCLUDE_EXCLUDE_REG}" STREQUAL "")
-                install(
-                  DIRECTORY ${__cf__INCLUDE_DIRS}
-                  DESTINATION "${__cf__INSTALL_INCLUDE_DIR}"
-                  COMPONENT Development
-                  FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ
-                  DIRECTORY_PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ
-                  REGEX "${__cf__INCLUDE_EXCLUDE_REG}" EXCLUDE
-                  PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ
-                )
+                # Install one by one to avoid spaces being used as separators
+                foreach (__item IN LISTS __cf__INCLUDE_DIRS)
+                    install(
+                      DIRECTORY "${__item}"
+                      DESTINATION "${__cf__INSTALL_INCLUDE_DIR}"
+                      COMPONENT Development
+                      FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ
+                      DIRECTORY_PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ
+                      REGEX "${__cf__INCLUDE_EXCLUDE_REG}" EXCLUDE
+                      PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ
+                    )
+                endforeach ()
+                PKG_unset(__item)
             else ()
-                install(
-                  DIRECTORY ${__cf__INCLUDE_DIRS}
-                  DESTINATION "${__cf__INSTALL_INCLUDE_DIR}"
-                  COMPONENT Development
-                  FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ
-                  DIRECTORY_PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ
-                )
+                # Install one by one to avoid spaces being used as separators
+                foreach (__item IN LISTS __cf__INCLUDE_DIRS)
+                    install(
+                      DIRECTORY "${__item}"
+                      DESTINATION "${__cf__INSTALL_INCLUDE_DIR}"
+                      COMPONENT Development
+                      FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ
+                      DIRECTORY_PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ
+                    )
+                endforeach ()
+                PKG_unset(__item)
             endif ()
         endif ()
 
         if (DEFINED __cf__INCLUDE_FILES AND NOT "${__cf__INCLUDE_FILES}" STREQUAL "")
-            install(
-              FILES ${__cf__INCLUDE_FILES}
-              DESTINATION "${__cf__INSTALL_INCLUDE_DIR}"
-              COMPONENT Development
-              PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ
-            )
+            # Install one by one to avoid spaces being used as separators
+            foreach (__item IN LISTS __cf__INCLUDE_FILES)
+                install(
+                  FILES "${__item}"
+                  DESTINATION "${__cf__INSTALL_INCLUDE_DIR}"
+                  COMPONENT Development
+                  PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ
+                )
+            endforeach ()
+            PKG_unset(__item)
         endif ()
     endif ()
 endfunction()
@@ -684,10 +742,6 @@ endfunction()
 #   ARGV     Other directories or files that need to be uninstalled together
 # Example: add_uninstall_command(${CMAKE_INSTALL_PREFIX})
 function(add_uninstall_command)
-    if (NOT __cf__ADD_UNINSTALL)
-        return()
-    endif ()
-
     foreach (arg ${ARGV})
         string(REGEX REPLACE "\;" "\\\\\\\\\\\\;" arg "${arg}")
         string(REGEX REPLACE "\"" "\\\\\"" arg "${arg}")
@@ -708,6 +762,43 @@ function(add_uninstall_command)
     add_custom_target(uninstall "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
                       COMMENT "Uninstalling files installed by the project from the system..."
                       VERBATIM)
+endfunction()
+
+
+# Install extension files
+function(PKG_install_files files_list)
+    # Remove the last element value in files_list (this value is the target directory)
+    list(POP_BACK files_list __dir)
+    # Install one by one to avoid spaces being used as separators
+    foreach (__item IN LISTS files_list)
+        install(
+          FILES "${__item}"
+          DESTINATION "${__dir}"
+          # COMPONENT Development
+          PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ
+          OPTIONAL
+        )
+    endforeach ()
+    PKG_unset(__dir __item)
+endfunction()
+
+
+# Install extension dirs
+function(PKG_install_dirs dirs_list)
+    # Remove the last element value in dirs_list (this value is the target directory)
+    list(POP_BACK dirs_list __dir)
+    # Install one by one to avoid spaces being used as separators
+    foreach (__item IN LISTS dirs_list)
+        install(
+          DIRECTORY "${__item}"
+          DESTINATION "${__dir}"
+          #COMPONENT Development
+          FILE_PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ
+          DIRECTORY_PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ
+          OPTIONAL
+        )
+    endforeach ()
+    PKG_unset(__dir __item)
 endfunction()
 
 
