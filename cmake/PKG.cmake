@@ -405,9 +405,9 @@ function(PKG)
     # Add uninstall command
     if (__cf__ADD_UNINSTALL)
         if (NOT __cf__UNINSTALL_ADDITIONAL OR "${__cf__UNINSTALL_ADDITIONAL}" STREQUAL "")
-            add_uninstall_command()
+            PKG_add_uninstall_command()
         else ()
-            add_uninstall_command("${__cf__UNINSTALL_ADDITIONAL}")
+            PKG_add_uninstall_command("${__cf__UNINSTALL_ADDITIONAL}")
         endif ()
     endif ()
 
@@ -808,8 +808,8 @@ endfunction()
 # Add uninstall command
 # INPUT:
 #   ARGV     Other directories or files that need to be uninstalled together
-# Example: add_uninstall_command(${CMAKE_INSTALL_PREFIX})
-function(add_uninstall_command)
+# Example: PKG_add_uninstall_command(${CMAKE_INSTALL_PREFIX})
+function(PKG_add_uninstall_command)
     foreach (arg ${ARGV})
         string(REGEX REPLACE "\;" "\\\\\\\\\\\\;" arg "${arg}")
         string(REGEX REPLACE "\"" "\\\\\"" arg "${arg}")
