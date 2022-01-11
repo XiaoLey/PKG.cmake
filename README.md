@@ -67,8 +67,8 @@ PKG(
   #_VERSION 1.2.3.4         # Automatically gets the PKG_shared propertie VERSION
   _DEBUG_POSTFIX "d"        # Equivalent to `set_target_properties(PKG_shared PROPERTIES DEBUG_POSTFIX "d")`
   _NAMESPACE "PKGNS"
-  _INSTALL_EXT_FILES_1 "doc/documents.doc" "doc"
-  _INSTALL_EXT_DIRS_1 "docs/" "doc"
+  _EXPORT_EXT_DIRS_1 "resources" "."
+  _INSTALL_EXT_DIRS_1 "docs/" "docs"
   _INCLUDE_DIRS "include/"
   _INCLUDE_EXCLUDE_REG ".*\\.(svn|h\\.in|hpp\\.in)$"
   _INCLUDE_DESTINATION "include/${PROJECT_NAME}-1.2.3.4"
@@ -170,6 +170,8 @@ PKG(
   _INSTALL_BIN_DIR       "bin"
   _INSTALL_LIB_DIR       "lib"
   _ADD_LIB_SUFFIX        FALSE
+  _EXPORT_EXT_FILES_<N>  ""...
+  _EXPORT_EXT_DIRS_<N>   ""...
   _INSTALL_EXT_FILES_<N> ""...
   _INSTALL_EXT_DIRS_<N>  ""...
   _INCLUDE_FILES         ""
@@ -210,7 +212,7 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 
   - <b>Type: </b> option
   - <b>Description:</b> Current target `_NAME` is a multi-component project and is being installed
-  - <b>Note:</b> Multi-component Project cannot be a buildable target.
+  - <b>Note:</b> Multi-component Project cannot be a runtime artifact.
 
 - #### \_NAME
 
@@ -293,13 +295,56 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
   - <b>Type: </b> option
   - <b>Description:</b> Add the suffix "64" to the library directory name, which is valid only for 64-bit systems.
 
+- #### \_EXPORT\_EXT\_FILES\_\<N\>
+
+  - <b>Type: </b> multi value
+
+  - <b>Description:</b> Export custom additional files when building the target. You can specify one or more files, but make sure `_NAME` is a runtime artifact, which can be an absolute or relative path to `CMAKE_CURRENT_SOURCE_DIR`. The last parameter specified is The destination path of the export (the specified files are exported here), which can be absolute or relative to `_BINARY_DIR`.
+
+  - <b>Note:</b> This keyword is not allowed after keywords of other `multi` types other than `_EXPORT_EXT_FILES_<N>`, `_EXPORT_EXT_DIRS_<N>`, `_INSTALL_EXT_FILES_<N>` and `_INSTALL_EXT_DIRS_<N>`.
+
+  - <b>Example:</b>
+
+    ```cmake
+    PKG(
+      ...
+      # _BINARY_DIR "${CMAKE_BINARY_DIR}"    # default value, it does not need to be specified explicitly
+      _EXPORT_EXT_FILES_1 "doc/helper.doc" "doc/documents.doxygen" "doc"
+      _EXPORT_EXT_FILES_2 "resource/img1.jpg" "resource/img2.jpg" "resource"
+      _EXPORT_EXT_FILES_n ...
+      ...
+    )
+    ```
+
+- #### \_EXPORT\_EXT\_DIRS\_\<N\>
+
+  - <b>Type: </b> multi value
+
+  - <b>Description:</b> Export custom additional directories when building the target. You can specify one or more directories, but make sure `_NAME` is a runtime artifact, which can be an absolute or relative path to `CMAKE_CURRENT_SOURCE_DIR`. The last parameter specified is the destination path of the export (the specified directories are exported here), which can be absolute or relative to `_BINARY_DIR`.
+
+  - <b>Note:</b> This keyword is not allowed after keywords of other `multi` types other than `_EXPORT_EXT_FILES_<N>`, `_EXPORT_EXT_DIRS_<N>`, `_INSTALL_EXT_FILES_<N>` and `_INSTALL_EXT_DIRS_<N>`.
+
+  - <b>Example:</b>
+
+    ```cmake
+    PKG(
+      ...
+      # _BINARY_DIR "${CMAKE_BINARY_DIR}"
+      _EXPORT_EXT_DIRS_1 "doc" "resources" "."
+      _EXPORT_EXT_DIRS_2 "/home/my/images/" "resources/imgs"
+      _EXPORT_EXT_DIRS_n ...
+      ...
+    )
+    ```
+
+
 - #### \_INSTALL\_EXT\_FILES\_\<N\>
 
   - <b>Type: </b> multi value
 
   - <b>Description:</b> Install custom additional files, the keyword can specify one or more files, either absolute or relative to the path of the `CMAKE_CURRENT_SOURCE_DIR`, and the last parameter specified is the target path of the installation (the specified files will be installed here), which can be absolute or relative to the path of the `_INSTALL_DIR`.
 
-  - <b>Note:</b> This keyword is not allowed after keywords of other `multi` types other than `_INSTALL_EXT_FILES_<N>` and `_INSTALL_EXT_DIRS_<N>`.
+  - <b>Note:</b> This keyword is not allowed after keywords of other `multi` types other than `_EXPORT_EXT_FILES_<N>`, `_EXPORT_EXT_DIRS_<N>`, `_INSTALL_EXT_FILES_<N>` and `_INSTALL_EXT_DIRS_<N>`.
 
   - <b>Example:</b>
     
@@ -320,16 +365,17 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 
   - <b>Description:</b> Install custom additional directories, the keyword can specify one or more directories, either absolute or relative to the path of the `CMAKE_CURRENT_SOURCE_DIR`, and the last parameter specified is the target path of the installation (the specified directories will be installed here), which can be absolute or relative to the path of the `_INSTALL_DIR`.
 
-  - <b>Note:</b> This keyword is not allowed after keywords of other `multi` types other than `_INSTALL_EXT_FILES_<N>` and `_INSTALL_EXT_DIRS_<N>`.
+  - <b>Note:</b> This keyword is not allowed after keywords of other `multi` types other than `_EXPORT_EXT_FILES_<N>`, `_EXPORT_EXT_DIRS_<N>`, `_INSTALL_EXT_FILES_<N>` and `_INSTALL_EXT_DIRS_<N>`.
 
   - <b>Example:</b>
 
     ```cmake
     PKG(
       ...
-      # _INSTALL_DIR "${CMAKE_INSTALL_PREFIX}"    # default value, it does not need to be specified explicitly
+      # _INSTALL_DIR "${CMAKE_INSTALL_PREFIX}"
       _INSTALL_EXT_DIRS_1 "doc/" "document" "doc"
-      _INSTALL_EXT_DIRS_2 "include/tmp/" "include/tmp"    # eq: _INSTALL_EXT_DIRS_2 "include/tmp" "include"
+      _INSTALL_EXT_DIRS_2 "imgs" "."
+      _INSTALL_EXT_DIRS_3 "include/tmp/" "include/tmp"    # eq: _INSTALL_EXT_DIRS_2 "include/tmp" "include"
       _INSTALL_EXT_DIRS_n ...
       ...
     )
