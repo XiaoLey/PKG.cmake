@@ -424,7 +424,7 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 
 ## Global Variables
 
-If the `_BINARY_DIR` \| `_INSTALL_DIR` keyword is not customized, the altered amount value is used as `_BINARY_DIR` keyword value which the value of `_NAME` is `<PROJECT> `, which affects components attached to \<PROJECT\>(Use the `_PROJECT` keyword to specify the subordinate projects that are formed).
+If the `_BINARY_DIR` \| `_INSTALL_DIR` keyword is not customized, the altered amount value is used as `_BINARY_DIR` keyword value which the value of `_NAME` is `<PROJECT>`, which affects components attached to \<PROJECT\>(Use the `_PROJECT` keyword to specify the subordinate projects that are formed).
 
 - <b>`PKG_<PROJECT>_BINARY_DIR`</b>
 - <b>`PKG_<PROJECT>_INSTALL_DIR`</b>
