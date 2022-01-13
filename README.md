@@ -64,7 +64,7 @@ set_target_properties(
 include(cmake/PKG.cmake)
 PKG(
   _NAME "PKG_shared"
-  #_VERSION 1.2.3.4         # Automatically gets the PKG_shared propertie VERSION
+  #_VERSION 1.2.3.4         # Automatically gets the PKG_shared property VERSION
   _DEBUG_POSTFIX "d"        # Equivalent to `set_target_properties(PKG_shared PROPERTIES DEBUG_POSTFIX "d")`
   _NAMESPACE "PKGNS"
   _DEPENDENCIES "Boost@1.72:thread,system" "Soci"
@@ -150,7 +150,7 @@ target_link_libraries(... PRIVATE PKG::component)
 The following is an overview of the function as a whole, including all available keywords and their corresponding default values (remember not to copy and use them directly):
 
 ```cmake
-# Global variables, defined before PKG().
+# Global variables, defined before PKG()
 set(PKG_<PROJECT>_BINARY_DIR "...")
 set(PKG_<PROJECT>_INSTALL_DIR "...")
 
@@ -159,7 +159,7 @@ PKG(
   _IS_COMPONENTS         FALSE
   _NAME                  ""
   _PROJECT               "${PROJECT_NAME}" | ""        # _IS_COMPONENT is undefined, the value is always empty
-  _VERSION               propertie VERSION | ""
+  _VERSION               property VERSION | ""
   _COMPATIBILITY         "AnyNewerVersion"
   _DEBUG_POSTFIX         ""
   _SHARED_LIBS           FALSE
@@ -196,7 +196,7 @@ PKG(
   _UNINSTALL_ADDITIONAL  ""...
 )
 
-# Automatically defined variables after calling PKG(... _EXPORT_HEADER "..." ...).
+# Automatically defined variables after calling PKG(... _EXPORT_HEADER "..." ...)
 message(${PKG_<_PROJECT>_<_NAME>_EXPORT_HEADER_DIR})
 message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 
@@ -209,7 +209,7 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 - #### \_IS\_COMPONENT
 
 	- <b>Type:</b> option
-	- <b>Description:</b> The component of the `_PROJECT` project are currently being installed.
+	- <b>Description:</b> The component of the `_PROJECT` project is currently being installed.
 
 - #### \_IS\_COMPONENTS
 
@@ -226,13 +226,13 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 
 	- <b>Type: </b> one value
 	- <b>Default:</b> "${PROJECT_NAME}" \| Undefined
-	- <b>Description:</b> Available when `_IS_COMPONENT` definition, its purpose is to specify the name of the project to which the component belongs.
+	- <b>Description:</b> Available when defined `_IS_COMPONENT`, its purpose is to specify the name of the project to which the component belongs.
 	
 - #### \_VERSION
 
   - <b>Type: </b> one value
-  - <b>Default:</b> propertie VERSION \| Undefined
-  - <b>Description:</b> version
+  - <b>Default:</b> property VERSION \| Undefined
+  - <b>Description:</b> Version control. If the `_VERSION` keyword is not given, the value of the `VERSION` property of the `_NAME` is looked up, and if the property value is not defined, the `_VERSION` will not be defined.
 
 - #### \_COMPATIBILITY
 
@@ -259,9 +259,9 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 
   - <b>Format:</b> 
 
-     	1. The file of the dependent library's `-config.cmake` or `Config.cmake` prefix + `@version`, usually this prefix is the name of the corresponding project. Example:  "boost\_python@1.72"; "boost\_python"; "Soci".
-     	2. For multi-component projects, you can use the format <b>"project@version:component1,component2..."</b>. Example:  "Boost@1.72:python"; "Boost:system,thread".
-     	3. If it is a dependency between the components of the current `_PROJECT`, it can be expressed in the format of <b>"@version:component1,component2..."</b>. Example: "@1.0:component1"(not recommended); ":component2,component3".
+      1. The file of the dependent library's `-config.cmake` or `Config.cmake` prefix + `@version`, usually this prefix is the name of the corresponding project. Example:  "boost\_python@1.72"; "boost\_python"; "Soci".
+      2. For multi-component projects, you can use the format <b>"project@version:component1,component2..."</b>. Example:  "Boost@1.72:python"; "Boost:system,thread".
+      3. If it is a dependency between the components of the current `_PROJECT`, it can be expressed in the format of <b>"@version:component1,component2..."</b>. Example: "@1.0:component1"(not recommended); ":component2,component3".
 
     - <b>Note:</b> The above "@version" can be omitted, CMake 3.19 after the version support version range. For details, please refer to the use of `find_package()` function.
 
@@ -474,7 +474,7 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 - #### \_DISABLE\_VERSION
 
   - <b>Type: </b> option
-  - <b>Description:</b> Always disable `*-config-version.cmake` file generation, and if there is no value based on `_VERSION` and propertie `VERSION` for `_NAME` is not defined, `*-config-version.cmake` file will not be generated.
+  - <b>Description:</b> Always disable `*-config-version.cmake` file generation, and if there is no value based on `_VERSION` and property `VERSION` for `_NAME` is not defined, `*-config-version.cmake` file will not be generated.
 
 - #### \_CONFIG\_TEMPLATE
 
