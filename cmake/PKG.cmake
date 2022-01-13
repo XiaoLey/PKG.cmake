@@ -30,16 +30,19 @@
 #cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 # PKG.cmake version control
-set(CURRENT_PKG_VERSION 0.3.1-release)
+set(CURRENT_PKG_VERSION 0.9-beta)
 if (NOT "${CURRENT_PKG_VERSION}" MATCHES "-release$")
     message(WARNING "PKG: The current PKG.cmake is not a stable version, if you want to use stable functions, please download the release version.")
 endif ()
+
 
 
 #===============================================================================
 #
 # @brief Quickly package projects or multi-component projects
 function(PKG)
+    PKG_check_empty_and_change_relative(PKG_FILE_CACHE_DIR "${CMAKE_CURRENT_BINARY_DIR}/_PKG_cache" "${CMAKE_CURRENT_SOURCE_DIR}")
+
     set(
       __options
       _IS_COMPONENT _IS_COMPONENTS _ADD_LIB_SUFFIX _DISABLE_INTERFACE _INSTALL_PDB
@@ -55,7 +58,7 @@ function(PKG)
     )
     set(
       __multiValueArgs
-      _INCLUDE_FILES _INCLUDE_DIRS _UNINSTALL_ADDITIONAL
+      _DEPENDENCIES _INCLUDE_FILES _INCLUDE_DIRS _UNINSTALL_ADDITIONAL
     )
     cmake_parse_arguments(PARSE_ARGV 0 __cf "${__options}" "${__oneValueArgs}" "${__multiValueArgs}")
     PKG_unset(__options __oneValueArgs __multiValueArgs)
@@ -67,15 +70,13 @@ function(PKG)
     endif ()
 
     if (__cf__IS_COMPONENT AND __cf__IS_COMPONENTS)
-        message(FATAL_ERROR "PKG: `_IS COMPONENT` and `_IS COMPONENTS` cannot be enabled at the same time")
+        message(FATAL_ERROR "PKG: `_IS_COMPONENT` and `_IS_COMPONENTS` cannot be enabled at the same time")
     endif ()
 
 
     # Initialize all parameter values
     if (__cf__IS_COMPONENT)
-        if (NOT __cf__PROJECT OR "${__cf__PROJECT}" STREQUAL "")
-            set(__cf__PROJECT "${PROJECT_NAME}")
-        endif ()
+        PKG_check_empty(__cf__PROJECT "${PROJECT_NAME}")
     else ()
         set(__cf__PROJECT "")
     endif ()
@@ -88,9 +89,7 @@ function(PKG)
         PKG_unset(__version)
     endif ()
 
-    if (NOT __cf__COMPATIBILITY OR "${__cf__COMPATIBILITY}" STREQUAL "")
-        set(__cf__COMPATIBILITY "AnyNewerVersion")
-    endif ()
+    PKG_check_empty(__cf__COMPATIBILITY "AnyNewerVersion")
 
     set(BUILD_SHARED_LIBS "${__cf__SHARED_LIBS}")
 
@@ -110,13 +109,7 @@ function(PKG)
         endif ()
     endif ()
 
-    if (NOT __cf__BINARY_BIN_DIR OR "${__cf__BINARY_BIN_DIR}" STREQUAL "")
-        set(__cf__BINARY_BIN_DIR "${__cf__BINARY_DIR}/bin")
-    else ()
-        if (NOT "${__cf__BINARY_BIN_DIR}" MATCHES "^[a-zA-Z]:|^/")
-            set(__cf__BINARY_BIN_DIR "${__cf__BINARY_DIR}/${__cf__BINARY_BIN_DIR}")
-        endif ()
-    endif ()
+    PKG_check_empty_and_change_relative(__cf__BINARY_BIN_DIR "${__cf__BINARY_DIR}/bin" "${__cf__BINARY_DIR}")
 
     if (NOT __cf__BINARY_LIB_DIR OR "${__cf__BINARY_LIB_DIR}" STREQUAL "")
         if (__cf__ADD_LIB_SUFFIX)
@@ -128,9 +121,7 @@ function(PKG)
             set(__cf__BINARY_LIB_DIR "${__cf__BINARY_DIR}/lib")
         endif ()
     else ()
-        if (NOT "${__cf__BINARY_LIB_DIR}" MATCHES "^[a-zA-Z]:|^/")
-            set(__cf__BINARY_LIB_DIR "${__cf__BINARY_DIR}/${__cf__BINARY_LIB_DIR}")
-        endif ()
+        PKG_change_relative(__cf__BINARY_LIB_DIR "${__cf__BINARY_DIR}")
 
         if (__cf__ADD_LIB_SUFFIX)
             PKG_get_COMPILER_BITS()
@@ -155,23 +146,10 @@ function(PKG)
             endif ()
         endif ()
     endif ()
-    set(CMAKE_INSTALL_PREFIX "${__cf__INSTALL_DIR}")    # change only the current scope
 
-    if (NOT __cf__INSTALL_INCLUDE_DIR OR "${__cf__INSTALL_INCLUDE_DIR}" STREQUAL "")
-        set(__cf__INSTALL_INCLUDE_DIR "${__cf__INSTALL_DIR}/include")
-    else ()
-        if (NOT "${__cf__INSTALL_INCLUDE_DIR}" MATCHES "^[a-zA-Z]:|^/")
-            set(__cf__INSTALL_INCLUDE_DIR "${__cf__INSTALL_DIR}/${__cf__INSTALL_INCLUDE_DIR}")
-        endif ()
-    endif ()
+    PKG_check_empty_and_change_relative(__cf__INSTALL_INCLUDE_DIR "${__cf__INSTALL_DIR}/include" "${__cf__INSTALL_DIR}")
 
-    if (NOT __cf__INSTALL_BIN_DIR OR "${__cf__INSTALL_BIN_DIR}" STREQUAL "")
-        set(__cf__INSTALL_BIN_DIR "${__cf__INSTALL_DIR}/bin")
-    else ()
-        if (NOT "${__cf__INSTALL_BIN_DIR}" MATCHES "^[a-zA-Z]:|^/")
-            set(__cf__INSTALL_BIN_DIR "${__cf__INSTALL_DIR}/${__cf__INSTALL_BIN_DIR}")
-        endif ()
-    endif ()
+    PKG_check_empty_and_change_relative(__cf__INSTALL_BIN_DIR "${__cf__INSTALL_DIR}/bin" "${__cf__INSTALL_DIR}")
 
     if (NOT __cf__INSTALL_LIB_DIR OR "${__cf__INSTALL_LIB_DIR}" STREQUAL "")
         if (__cf__ADD_LIB_SUFFIX)
@@ -183,9 +161,7 @@ function(PKG)
             set(__cf__INSTALL_LIB_DIR "${__cf__INSTALL_DIR}/lib")
         endif ()
     else ()
-        if (NOT "${__cf__INSTALL_LIB_DIR}" MATCHES "^[a-zA-Z]:|^/")
-            set(__cf__INSTALL_LIB_DIR "${__cf__INSTALL_DIR}/${__cf__INSTALL_LIB_DIR}")
-        endif ()
+        PKG_change_relative(__cf__INSTALL_LIB_DIR "${__cf__INSTALL_DIR}")
 
         if (__cf__ADD_LIB_SUFFIX)
             PKG_get_COMPILER_BITS()
@@ -195,13 +171,9 @@ function(PKG)
         endif ()
     endif ()
 
-    if (NOT __cf__INCLUDE_DESTINATION OR "${__cf__INCLUDE_DESTINATION}" STREQUAL "")
-        set(__cf__INCLUDE_DESTINATION "${__cf__INSTALL_INCLUDE_DIR}")
-    endif ()
+    PKG_check_empty(__cf__INCLUDE_DESTINATION "${__cf__INSTALL_INCLUDE_DIR}")
 
-    if (NOT __cf__MODE OR "${__cf__MODE}" STREQUAL "")
-        set(__cf__MODE "Development")
-    endif ()
+    PKG_check_empty(__cf__MODE "Development")
 
     if (NOT __cf__EXPORT_MACRO OR "${__cf__EXPORT_MACRO}" STREQUAL "")
         if (NOT __cf__PROJECT OR "${__cf__PROJECT}" STREQUAL "")
@@ -213,24 +185,27 @@ function(PKG)
         PKG_unset(__export_macro)
     endif ()
 
-    if (NOT __cf__EXPORT_INSTALL_DIR OR "${__cf__EXPORT_INSTALL_DIR}" STREQUAL "")
-        set(__cf__EXPORT_INSTALL_DIR "${__cf__INSTALL_INCLUDE_DIR}")
-    else ()
-        if (NOT "${__cf__EXPORT_INSTALL_DIR}" MATCHES "^[a-zA-Z]:|^/")
-            set(__cf__EXPORT_INSTALL_DIR "${__cf__INSTALL_DIR}/${__cf__EXPORT_INSTALL_DIR}")
-        endif ()
-    endif ()
+    PKG_check_empty_and_change_relative(__cf__EXPORT_INSTALL_DIR "${__cf__INSTALL_INCLUDE_DIR}" "${__cf__INSTALL_DIR}")
 
     if (NOT __cf__DISABLE_CONFIG)
         if (NOT __cf__CONFIG_TEMPLATE OR "${__cf__CONFIG_TEMPLATE}" STREQUAL "")
             if (__cf__IS_COMPONENTS)
-                set(__cf__CONFIG_TEMPLATE "${CMAKE_SOURCE_DIR}/cmake/PKG_components-config.cmake.in")
+                # Generate configuration file
+                PKG_content_cmake_components_config_cmake_in(__file_content)
+                file(WRITE "${PKG_FILE_CACHE_DIR}/PKG_components-config.cmake.in" "${__file_content}")
+                set(__cf__CONFIG_TEMPLATE "${PKG_FILE_CACHE_DIR}/PKG_components-config.cmake.in")
+                PKG_unset(__file_content)
             else ()
-                set(__cf__CONFIG_TEMPLATE "${CMAKE_SOURCE_DIR}/cmake/PKG_normal-config.cmake.in")
+                # Generate configuration file
+                PKG_content_cmake_normal_config_cmake_in(__file_content "${__cf__DEPENDENCIES}")
+                file(WRITE "${PKG_FILE_CACHE_DIR}/PKG_normal-config.cmake.in" "${__file_content}")
+                set(__cf__CONFIG_TEMPLATE "${PKG_FILE_CACHE_DIR}/PKG_normal-config.cmake.in")
+                PKG_unset(__file_content)
             endif ()
-            if (NOT EXISTS "${__cf__CONFIG_TEMPLATE}")
-                message(FATAL_ERROR "PKG: \"${__cf__CONFIG_TEMPLATE}\" file does not exist")
-            endif ()
+        endif ()
+
+        if (NOT EXISTS "${__cf__CONFIG_TEMPLATE}")
+            message(FATAL_ERROR "PKG: \"${__cf__CONFIG_TEMPLATE}\" file does not exist")
         endif ()
     else ()
         # If the value has been customized, a prompt will pop up
@@ -245,14 +220,37 @@ function(PKG)
 
     if (__cf__ADD_UNINSTALL)
         if (NOT __cf__UNINSTALL_TEMPLATE OR "${__cf__UNINSTALL_TEMPLATE}" STREQUAL "")
-            set(__cf__UNINSTALL_TEMPLATE "${CMAKE_SOURCE_DIR}/cmake/PKG_cmake_uninstall.cmake.in")
-            if (NOT EXISTS "${__cf__UNINSTALL_TEMPLATE}")
-                message(FATAL_ERROR "PKG: \"${__cf__UNINSTALL_TEMPLATE}\" file does not exist")
-            endif ()
+            # Generate configuration file
+            PKG_content_cmake_uninstall_cmake_in(__file_content)
+            file(WRITE "${PKG_FILE_CACHE_DIR}/PKG_cmake_uninstall.cmake.in" "${__file_content}")
+            set(__cf__UNINSTALL_TEMPLATE "${PKG_FILE_CACHE_DIR}/PKG_cmake_uninstall.cmake.in")
+            PKG_unset(__file_content)
+        endif ()
+
+        if (NOT EXISTS "${__cf__UNINSTALL_TEMPLATE}")
+            message(FATAL_ERROR "PKG: \"${__cf__UNINSTALL_TEMPLATE}\" file does not exist")
         endif ()
     else ()
         set(__cf__UNINSTALL_TEMPLATE "")
     endif ()
+
+
+    # PKG-specific targets, some operations for PKG that override CMake's default actions
+    set(__PKG_SPECIFIC_TARGET)
+    string(RANDOM LENGTH 5 ALPHABET "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" __PKG_SPECIFIC_TARGET)
+    if (__cf__IS_COMPONENT)
+        set(__PKG_SPECIFIC_TARGET "_PKG_${__cf__PROJECT}_${__cf__NAME}_${__PKG_SPECIFIC_TARGET}")
+    else ()
+        set(__PKG_SPECIFIC_TARGET "_PKG_${__cf__NAME}_${__PKG_SPECIFIC_TARGET}")
+    endif ()
+    add_custom_target(${__PKG_SPECIFIC_TARGET} ALL)
+
+    # Modify the part that is automatically generated by the relevant CMake
+    set(CMAKE_INSTALL_PREFIX "${__cf__INSTALL_DIR}")
+    if (NOT __cf__IS_COMPONENTS)
+        PKG_generate_cmake_install_PKG_cmake_file()
+    endif ()
+
 
     # Export unapproved keywords
     set(__install_files_dirs "${__cf_UNPARSED_ARGUMENTS}")
@@ -278,9 +276,7 @@ function(PKG)
         math(EXPR __last_index "${__count} - 1")
         list(GET __exp_ins_${__file_dir} ${__last_index} __last_value)
         # If it is not an absolute path, it becomes an absolute path
-        if (NOT "${__last_value}" MATCHES "^[a-zA-Z]:|^/")
-            set(__last_value "${__cf__INSTALL_DIR}/${__last_value}")
-        endif ()
+        PKG_change_relative(__last_value "${__cf__INSTALL_DIR}")
         # Make sure the last item of all __exp_ins__INSTALL_EXT_... is not an existing file
         # (because file cannot be used as installation directoriy)
         if (EXISTS "${__last_value}" AND NOT IS_DIRECTORY "${__last_value}")
@@ -309,9 +305,7 @@ function(PKG)
         math(EXPR __last_index "${__count} - 1")
         list(GET __exp_ins_${__file_dir} ${__last_index} __last_value)
         # If it is not an absolute path, it becomes an absolute path
-        if (NOT "${__last_value}" MATCHES "^[a-zA-Z]:|^/")
-            set(__last_value "${__cf__BINARY_DIR}/${__last_value}")
-        endif ()
+        PKG_change_relative(__last_value "${__cf__BINARY_DIR}")
         # Make sure the last item of all __exp_ins__EXPORT_EXT_... is not an existing file
         # (because file cannot be used as installation directoriy)
         if (EXISTS "${__last_value}" AND NOT IS_DIRECTORY "${__last_value}")
@@ -330,9 +324,7 @@ function(PKG)
         if (DEFINED __cf__EXPORT_HEADER AND NOT "${__cf__EXPORT_HEADER}" STREQUAL "")
             # If no absolute path is specified, the relative path is relative to the
             # CMAKE_CURRENT_BINARY_DIR to synthesize the absolute path
-            if (NOT "${__cf__EXPORT_HEADER}" MATCHES "^[a-zA-Z]:|^/")
-                set(__cf__EXPORT_HEADER "${CMAKE_CURRENT_BINARY_DIR}/${__cf__EXPORT_HEADER}")
-            endif ()
+            PKG_change_relative(__cf__EXPORT_HEADER "${CMAKE_CURRENT_BINARY_DIR}")
 
             PKG_generate_export_header("${__cf__NAME}")
 
@@ -375,11 +367,7 @@ function(PKG)
     # Use the GenerateExportHeader module to set the config configuration file
     # (distinguish between normal libraries and component libraries)
     if (NOT __cf__DISABLE_CONFIG)
-        if (__cf__IS_COMPONENT)
-            PKG_generate_target_config(TARGET_NAME "${__cf__NAME}")
-        else ()
-            PKG_generate_target_config(TARGET_NAME "${__cf__NAME}" MAIN)
-        endif ()
+        PKG_generate_target_config(TARGET_NAME "${__cf__NAME}")
     endif ()
 
 
@@ -411,6 +399,7 @@ function(PKG)
         endif ()
     endif ()
 
+
     # Output information
     if (__cf__IS_COMPONENT)
         message(STATUS "PKG: [Project Component]: \"${__cf__PROJECT}-${__cf__NAME}\" build installation completed")
@@ -419,6 +408,125 @@ function(PKG)
     else ()
         message(STATUS "PKG: [Project]: \"${__cf__NAME}\" build installation completed")
     endif ()
+endfunction()
+
+
+# Determine whether the variable value is empty
+# @parm path_variable   Path variable to process
+# @parm default_value   Default value
+# @param path_prefix    When the value is a relative path, this variable is the absolute path prefix
+macro(PKG_check_empty path_variable default_value)
+    if (NOT ${path_variable} OR "${${path_variable}}" STREQUAL "")
+        set(${path_variable} "${default_value}")
+    endif ()
+endmacro()
+
+
+# change the relative path to an absolute path
+# @parm path_variable   Path variable to process
+# @param path_prefix    When the value is a relative path, this variable is the absolute path prefix
+macro(PKG_change_relative path_variable path_prefix)
+    if (NOT "${${path_variable}}" MATCHES "^[a-zA-Z]:|^/")
+        set(${path_variable} "${path_prefix}/${${path_variable}}")
+    endif ()
+endmacro()
+
+
+# Determine whether the variable value is empty and change the relative path to an absolute path
+# @parm path_variable   Path variable to process
+# @parm default_value   Default value
+# @param path_prefix    When the value is a relative path, this variable is the absolute path prefix
+macro(PKG_check_empty_and_change_relative path_variable default_value path_prefix)
+    if (NOT ${path_variable} OR "${${path_variable}}" STREQUAL "")
+        set(${path_variable} "${default_value}")
+    else ()
+        if (NOT "${${path_variable}}" MATCHES "^[a-zA-Z]:|^/")
+            set(${path_variable} "${path_prefix}/${${path_variable}}")
+        endif ()
+    endif ()
+endmacro()
+
+
+# Generate "cmake_install_PKG.cmake" file, and set to execute
+function(PKG_generate_cmake_install_PKG_cmake_file)
+    set(__cmake_install_pre_content [==========[
+set(__install_file "${CMAKE_CURRENT_LIST_DIR}/cmake_install.cmake")
+
+if (NOT EXISTS "${__install_file}")
+  unset(__install_file)
+  message(FATAL_ERROR "PKG: \"${__install_file}\" does not exist")
+endif ()
+
+message(STATUS "PKG: Executing the Script: ${CMAKE_CURRENT_LIST_FILE}...")
+
+file(READ "${__install_file}" __cmake_install_content)
+
+string(REGEX MATCH "# PKG: Save the original CMAKE_INSTALL_PREFIX, then change it\n" __has_defined "${__cmake_install_content}")
+if (NOT __has_defined OR "${__has_defined}" STREQUAL "")
+  string(REPLACE "# Set the install prefix" [[
+# PKG: Save the original CMAKE_INSTALL_PREFIX, then change it
+set(__CMAKE_INSTALL_PREFIX_OLD "${CMAKE_INSTALL_PREFIX}")
+set(CMAKE_INSTALL_PREFIX "@__INSTALL_DIR@")
+
+# Set the install prefix]] __cmake_install_content "${__cmake_install_content}")
+endif ()
+unset(__has_defined)
+
+string(REGEX MATCH "# PKG: Restore CMAKE_INSTALL_PREFIX\n" __has_defined "${__cmake_install_content}")
+if (NOT __has_defined OR "${__has_defined}" STREQUAL "")
+  string(APPEND __cmake_install_content [[
+# PKG: Restore CMAKE_INSTALL_PREFIX
+set(CMAKE_INSTALL_PREFIX "${__CMAKE_INSTALL_PREFIX_OLD}")
+unset(__CMAKE_INSTALL_PREFIX_OLD)
+]])
+endif ()
+unset(__has_defined)
+
+# Get the *-targets.cmake file that will be installed, Modify the internal _IMPORT PREFIX variable
+string(REGEX MATCHALL "[^\n]+" __content_list "${__cmake_install_content}")
+foreach(__item IN LISTS __content_list)
+  string(REGEX MATCH "file\\(INSTALL DESTINATION \"([a-zA-Z]:/|/).*@__TARGET@-targets\\.cmake\"\\)$" __aim "${__item}")
+
+  if (DEFINED __aim AND NOT "${__aim}" STREQUAL "")
+    string(REGEX MATCH "FILES \"([a-zA-Z]:/|/).*@__TARGET@-targets\\.cmake\"\\)$" __aim "${__aim}")
+    string(REGEX REPLACE "^FILES \"|\"\\)$" "" __aim "${__aim}")
+
+    if (DEFINED __aim AND NOT "${__aim}" STREQUAL "" AND EXISTS "${__aim}")
+      file(READ "${__aim}" __aim_content)
+
+      string(REGEX MATCH "# PKG: The installation prefix configured by this project\\.\n" __has_defined "${__aim_content}")
+      if (NOT __has_defined OR "${__has_defined}" STREQUAL "")
+        string(REGEX REPLACE "# Create imported target" [[
+# PKG: The installation prefix configured by this project.
+set(_IMPORT_PREFIX "@__INSTALL_DIR@")
+
+# Create imported target]] __aim_content "${__aim_content}")
+
+        file(WRITE "${__aim}" "${__aim_content}")
+      endif ()
+      unset(__has_defined)
+      unset(__aim_content)
+    endif()
+    break()
+  endif()
+  unset(__aim)
+endforeach()
+unset(__item)
+unset(__content_list)
+
+file(WRITE "${__install_file}" "${__cmake_install_content}")
+
+message(STATUS "PKG: Execution completed")
+unset(__install_file)
+unset(__cmake_install_content)
+]==========])
+    string(REPLACE "@__INSTALL_DIR@" "${__cf__INSTALL_DIR}" __cmake_install_pre_content "${__cmake_install_pre_content}")
+    string(REPLACE "@__TARGET@" "${__cf__NAME}" __cmake_install_pre_content "${__cmake_install_pre_content}")
+    file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/cmake_install_PKG.cmake" "${__cmake_install_pre_content}")
+
+    add_custom_command(TARGET ${__PKG_SPECIFIC_TARGET} PRE_BUILD
+                       COMMAND "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_install_PKG.cmake"
+                       VERBATIM)
 endfunction()
 
 
@@ -696,11 +804,9 @@ endfunction()
 # You can specify resource strings in arguments:
 # TARGET_NAME           - one, the name of the target. (default: ${__cf__NAME})
 # PATH_VARS             - mul, list of variables corresponding to PATH_VARS in configure_package_config_filea (no defaults)
-# MAIN                  - opt, Marked as main, means the CMakeLists.txt calling the function is the root CMakeLists.txt
 function(PKG_generate_target_config)
     include(CMakeParseArguments)
-    set(__options
-        MAIN)
+    set(__options)
     set(__oneValueArgs
         TARGET_NAME)
     set(__multiValueArgs
@@ -708,9 +814,7 @@ function(PKG_generate_target_config)
     cmake_parse_arguments(__config "${__options}" "${__oneValueArgs}" "${__multiValueArgs}" "${ARGN}")
     PKG_unset(__options __oneValueArgs __multiValueArgs)
 
-    if (NOT __config_TARGET_NAME OR "${__config_TARGET_NAME}" STREQUAL "")
-        set(__config_TARGET_NAME "${__cf__NAME}")
-    endif ()
+    PKG_check_empty(__config_TARGET_NAME "${__cf__NAME}")
 
     # If a namespace is declared, the namespace is used
     if (NOT __cf__PROJECT OR "${__cf__PROJECT}" STREQUAL "")
@@ -722,58 +826,36 @@ function(PKG_generate_target_config)
     # The complete list of libraries in the project (used by the config template)
     set(__ENTIRE_LIBRARIES)
 
-    # The main config file, which will get a complete list of components
-    # (please make sure that all components have generated targets configuration files before this)
-    if (__config_MAIN)
-        file(GLOB_RECURSE __targets_files FOLLOW_SYMLINKS
-             RELATIVE "${__cf__BINARY_DIR}/cmake"
-             LIST_DIRECTORIES false
-             "*-targets.cmake")
-
-        # Remove the path that returns to the previous level
-        set(__pre_remove)
-        foreach (__item ${__targets_files})
-            if ("${__item}" MATCHES "^\\.\\./")
-                list(APPEND __pre_remove "${__item}")
-            endif ()
-            PKG_unset(__item)
-        endforeach ()
-        PKG_unset(__item)
-
-        list(REMOVE_ITEM __targets_files ${__pre_remove})
-
-        set(__targets_file_paths)       # Absolute path to the "*-targets.cmake" file
-        foreach (__file ${__targets_files})
-            list(APPEND __targets_file_paths "${__cf__BINARY_DIR}/cmake/${__file}")
-        endforeach ()
-        PKG_unset(__file __targets_files __pre_remove)
-
-        foreach (__file ${__targets_file_paths})
-            file(READ "${__file}" __content)
-            string(REGEX MATCHALL [[add_library\((.*) (STATIC|SHARED|MODULE|UNKNOWN|OBJECT|INTERFACE) IMPORTED\)]]
-                   __content "${__content}")
-            string(REGEX REPLACE "^[ \t\r\n]+|[ \t\r\n]+$" "" __content "${CMAKE_MATCH_1}")
-
-            # After processing, add to the __ENTIRE_LIBRARIES variable
-            list(APPEND __ENTIRE_LIBRARIES "${__content}")
-
-            PKG_unset(__content)
-        endforeach ()
-        PKG_unset(__file __targets_file_paths)
-
-        # Remove duplicates after the end
-        list(REMOVE_DUPLICATES __ENTIRE_LIBRARIES)
+    # Each component stores its own name so that the config file of its parent project can get a complete list of components
+    if (__cf__IS_COMPONENT)
+        if (DEFINED __cf__NAMESPACE AND NOT "${__cf__NAMESPACE}" STREQUAL "")
+            set(__library_name "${__cf__NAMESPACE}::${__cf__NAME}")
+        else ()
+            set(__library_name "${__cf__NAME}")
+        endif ()
+        set(___ENTIRE_LIBRARIES_tmp "${__${__cf__PROJECT}_ENTIRE_LIBRARIES};${__library_name}")
+        string(REGEX REPLACE "^;" "" ___ENTIRE_LIBRARIES_tmp "${___ENTIRE_LIBRARIES_tmp}")
+        list(REMOVE_DUPLICATES ___ENTIRE_LIBRARIES_tmp)
+        set(__${__cf__PROJECT}_ENTIRE_LIBRARIES "${___ENTIRE_LIBRARIES_tmp}" CACHE INTERNAL "" FORCE)
+    else ()
+        set(__ENTIRE_LIBRARIES "${__${__cf__NAME}_ENTIRE_LIBRARIES}")
     endif ()
 
-    include(CMakePackageConfigHelpers)
+
     set(__FINAL_NAME "${__final_name}") # Used for variables in configuration files
+    set(__FINAL_VERSION "${__cf__VERSION}") # Used for variables in configuration files
+    set(__FINAL_INSTALL_DIR "${__cf__INSTALL_DIR}") # Used for _INSTALL_DIR in configuration files
+    set(__FINAL_INSTALL_INCLUDE_DIR "${__cf__INSTALL_INCLUDE_DIR}") # Used for _INSTALL_INCLUDE_DIR in configuration files
+    set(__FINAL_INSTALL_LIB_DIR "${__cf__INSTALL_LIB_DIR}") # Used for _INSTALL_LIB_DIR in configuration files
+    set(__FINAL_INSTALL_BIN_DIR "${__cf__INSTALL_BIN_DIR}") # Used for _INSTALL_BIN_DIR in configuration files
+    include(CMakePackageConfigHelpers)
     configure_package_config_file(
       "${__cf__CONFIG_TEMPLATE}"
       "${__cf__BINARY_DIR}/cmake/${__final_name}-config.cmake"
       INSTALL_DESTINATION "${__cf__INSTALL_LIB_DIR}/cmake/${__final_name}"
       PATH_VARS ${__config_PATH_VARS}
     )
-    PKG_unset(__FINAL_NAME __ENTIRE_LIBRARIES)
+    PKG_unset(__ENTIRE_LIBRARIES __FINAL_NAME __FINAL_VERSION __FINAL_INSTALL_DIR __FINAL_INSTALL_LIB_DIR)
 
     install(
       FILES
@@ -805,34 +887,6 @@ function(PKG_generate_export_header target_name)
 endfunction()
 
 
-# Add uninstall command
-# INPUT:
-#   ARGV     Other directories or files that need to be uninstalled together
-# Example: PKG_add_uninstall_command(${CMAKE_INSTALL_PREFIX})
-function(PKG_add_uninstall_command)
-    foreach (arg ${ARGV})
-        string(REGEX REPLACE "\;" "\\\\\\\\\\\\;" arg "${arg}")
-        string(REGEX REPLACE "\"" "\\\\\"" arg "${arg}")
-        string(REGEX REPLACE " " "\\\\ " arg "${arg}")
-        string(REPLACE "(" "\\(" arg "${arg}")
-        string(REPLACE ")" "\\)" arg "${arg}")
-        string(REPLACE "{" "\\{" arg "${arg}")
-        string(REPLACE "}" "\\}" arg "${arg}")
-        list(APPEND CUSTOM_UNINSTALL_FILES "${arg}")
-    endforeach ()
-
-    configure_file(
-      "${__cf__UNINSTALL_TEMPLATE}"
-      "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-      IMMEDIATE @ONLY)
-
-    # Add uninstall command
-    add_custom_target(uninstall "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
-                      COMMENT "Uninstalling files installed by the project from the system..."
-                      VERBATIM)
-endfunction()
-
-
 # Export extension files
 function(PKG_export_files target_name files_list)
     # Remove the last element value in files_list (this value is the target directory)
@@ -840,9 +894,7 @@ function(PKG_export_files target_name files_list)
     # Install one by one to avoid spaces being used as separators
     foreach (__item IN LISTS files_list)
         # Make __item an absolute path
-        if (NOT "${__item}" MATCHES "^[a-zA-Z]:|^/")
-            set(__item "${CMAKE_CURRENT_SOURCE_DIR}/${__item}")
-        endif ()
+        PKG_change_relative(__item "${CMAKE_CURRENT_SOURCE_DIR}")
         # Get the parent path of the file
         get_filename_component(__file_parent_dir "${__item}" DIRECTORY)
 
@@ -865,9 +917,7 @@ function(PKG_export_dirs target_name files_list)
     # Install one by one to avoid spaces being used as separators
     foreach (__item IN LISTS files_list)
         # Make __item an absolute path
-        if (NOT "${__item}" MATCHES "^[a-zA-Z]:|^/")
-            set(__item "${CMAKE_CURRENT_SOURCE_DIR}/${__item}")
-        endif ()
+        PKG_change_relative(__item "${CMAKE_CURRENT_SOURCE_DIR}")
 
         # Determine the copy method according to whether there is a "/" at the end of __item
         # Define __dir_from and __dir_to
@@ -928,6 +978,34 @@ function(PKG_install_dirs dirs_list)
 endfunction()
 
 
+# Add uninstall command
+# INPUT:
+#   ARGV     Other directories or files that need to be uninstalled together
+# Example: PKG_add_uninstall_command(${CMAKE_INSTALL_PREFIX})
+function(PKG_add_uninstall_command)
+    foreach (arg ${ARGV})
+        string(REGEX REPLACE "\;" "\\\\\\\\\\\\;" arg "${arg}")
+        string(REGEX REPLACE "\"" "\\\\\"" arg "${arg}")
+        string(REGEX REPLACE " " "\\\\ " arg "${arg}")
+        string(REPLACE "(" "\\(" arg "${arg}")
+        string(REPLACE ")" "\\)" arg "${arg}")
+        string(REPLACE "{" "\\{" arg "${arg}")
+        string(REPLACE "}" "\\}" arg "${arg}")
+        list(APPEND CUSTOM_UNINSTALL_FILES "${arg}")
+    endforeach ()
+
+    configure_file(
+      "${__cf__UNINSTALL_TEMPLATE}"
+      "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+      IMMEDIATE @ONLY)
+
+    # Add uninstall command
+    add_custom_target(uninstall "${CMAKE_COMMAND}" -P "${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake"
+                      COMMENT "Uninstalling files installed by the project from the system..."
+                      VERBATIM)
+endfunction()
+
+
 # batch release variables
 # Example: PKG_unset(A B C)
 macro(PKG_unset)
@@ -935,3 +1013,305 @@ macro(PKG_unset)
         unset(${__arg})
     endforeach ()
 endmacro()
+
+
+# "PKG_cmake_uninstall.cmake.in" files content
+function(PKG_content_cmake_uninstall_cmake_in content)
+    set(__content [===========================[
+# If CUSTOM_UNINSTALL_FILES is defined, the files additionally specified
+# in the CUSTOM_UNINSTALL_FILES list will be uninstalled together
+
+if (NOT EXISTS "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt")
+    message(FATAL_ERROR "Cannot find install manifest: \"@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt\"")
+endif ()
+
+file(READ "@CMAKE_CURRENT_BINARY_DIR@/install_manifest.txt" files)
+string(REGEX REPLACE "\;" "\\\;" files "${files}")  # Escape the original semicolon first
+string(REGEX REPLACE "\n" ";" files "${files}")
+list(REMOVE_DUPLICATES files)   # files deduplication
+set(_CUSTOM_UNINSTALL_FILES @CUSTOM_UNINSTALL_FILES@)
+
+foreach (file IN LISTS files _CUSTOM_UNINSTALL_FILES)
+    message(STATUS "Uninstalling: \"$ENV{DESTDIR}${file}\"")
+    if (EXISTS "$ENV{DESTDIR}${file}")
+        #execute_process(
+        #        COMMAND "@CMAKE_COMMAND@" -E remove \"$ENV{DESTDIR}${file}\"
+        #        OUTPUT_VARIABLE rm_out
+        #        RESULT_VARIABLE rm_resVal
+        #)
+
+        exec_program(
+          "@CMAKE_COMMAND@" ARGS "-E rm -r \"$ENV{DESTDIR}${file}\""
+          OUTPUT_VARIABLE rm_out
+          RETURN_VALUE rm_resVal
+        )
+
+        if (NOT "${rm_resVal}" STREQUAL 0)
+            message(FATAL_ERROR "Problem when removing \"$ENV{DESTDIR}${file}\" —— ${rm_resVal}")
+        endif ()
+    else ()
+        message(STATUS "File \"$ENV{DESTDIR}${file}\" does not exist.")
+    endif ()
+endforeach ()
+]===========================])
+    string(REGEX REPLACE "^[\t\n\r ]+" "" __content "${__content}")
+    set(${content} "${__content}" PARENT_SCOPE)
+    PKG_unset(__content)
+endfunction()
+
+
+# "PKG_components-config.cmake.in" files content
+function(PKG_content_cmake_components_config_cmake_in content)
+    # BUILD_SHARED_LIBS
+    # __FINAL_NAME
+    # __FINAL_VERSION
+    # __FINAL_INSTALL_INCLUDE_DIR
+    # __FINAL_INSTALL_LIB_DIR
+    # __FINAL_INSTALL_BIN_DIR
+    set(__content [===========================[
+####################################################################################
+#
+#    This file will define the following variables:
+#      - @__FINAL_NAME@_INSTALL_PREFIX   : The @__FINAL_NAME@ installation directory.
+#      - @__FINAL_NAME@_VERSION          : @__FINAL_NAME@ version number.
+#      - @__FINAL_NAME@_ENTIRE_LIBS      : Full list of libraries in @__FINAL_NAME@.
+#      - @__FINAL_NAME@_LIBS             : The list of libraries to link against.
+#      - @__FINAL_NAME@_INCLUDE_DIRS     : The @__FINAL_NAME@ include directories.
+#      - @__FINAL_NAME@_LIB_DIRS         : The @__FINAL_NAME@ library directories.
+#      - @__FINAL_NAME@_BIN_DIRS         : The @__FINAL_NAME@ binary directories.
+#      - @__FINAL_NAME@_SHARED           : If true, @__FINAL_NAME@ is a shared library.
+#
+####################################################################################
+
+# Set the version number
+set(@__FINAL_NAME@_VERSION "@__FINAL_VERSION@")
+
+@PACKAGE_INIT@
+
+# If true, it is a shared library
+set(@__FINAL_NAME@_SHARED @BUILD_SHARED_LIBS@)
+# binary directory location
+list(APPEND @__FINAL_NAME@_BIN_DIRS "@__FINAL_INSTALL_BIN_DIR@")
+
+set(__@__FINAL_NAME@_FIND_PARTS_REQUIRED)
+if (@__FINAL_NAME@_FIND_REQUIRED)
+  set(__@__FINAL_NAME@_FIND_PARTS_REQUIRED REQUIRED)
+endif ()
+set(__@__FINAL_NAME@_FIND_PARTS_QUIET)
+if (@__FINAL_NAME@_FIND_QUIETLY)
+  set(__@__FINAL_NAME@_FIND_PARTS_QUIET QUIET)
+endif ()
+
+get_filename_component(__@__FINAL_NAME@_install_prefix "${PACKAGE_PREFIX_DIR}" ABSOLUTE)
+
+# Let components find each other, but don't overwrite CMAKE_PREFIX_PATH
+set(__@__FINAL_NAME@_CMAKE_PREFIX_PATH_old "${CMAKE_PREFIX_PATH}")
+set_and_check(CMAKE_PREFIX_PATH "${__@__FINAL_NAME@_install_prefix}")
+
+# Define @__FINAL_NAME@_ENTIRE_LIBS
+set(@__FINAL_NAME@_ENTIRE_LIBS "@__ENTIRE_LIBRARIES@")
+
+foreach (__@__FINAL_NAME@_module ${@__FINAL_NAME@_FIND_COMPONENTS})
+  find_package(@__FINAL_NAME@-${__@__FINAL_NAME@_module}
+               ${__@__FINAL_NAME@_FIND_PARTS_QUIET}
+               ${__@__FINAL_NAME@_FIND_PARTS_REQUIRED}
+               PATHS "${__@__FINAL_NAME@_install_prefix}" NO_DEFAULT_PATH)
+
+  if (NOT @__FINAL_NAME@-${__@__FINAL_NAME@_module}_FOUND)
+    if (@__FINAL_NAME@_FIND_REQUIRED_${__@__FINAL_NAME@_module})
+      set_and_check(@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH "@__FINAL_INSTALL_LIB_DIR@/cmake/@__FINAL_NAME@-${__@__FINAL_NAME@_module}/@__FINAL_NAME@-${__@__FINAL_NAME@_module}-config.cmake")
+      set(__@__FINAL_NAME@_NOTFOUND_MESSAGE "${__@__FINAL_NAME@_NOTFOUND_MESSAGE}Failed to load @__FINAL_NAME@ component \"${__@__FINAL_NAME@_module}\", config file \"${@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH}\"\n")
+      unset(@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH)
+    elseif (NOT @__FINAL_NAME@_FIND_QUIETLY)
+      set_and_check(@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH "@__FINAL_INSTALL_LIB_DIR@/cmake/@__FINAL_NAME@-${__@__FINAL_NAME@_module}/@__FINAL_NAME@-${__@__FINAL_NAME@_module}-config.cmake")
+      if (NOT EXISTS "${@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH}")
+        message(WARNING "Failed to find @__FINAL_NAME@ component \"${__@__FINAL_NAME@_module}\" config file at \"${@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH}\"")
+      else ()
+        message(WARNING "Failed to load @__FINAL_NAME@ component \"${__@__FINAL_NAME@_module}\", config file \"${@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH}\"")
+      endif ()
+      unset(@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH)
+    endif ()
+  else ()
+    # For backward compatibility set the LIBRARIES variable
+    string(REGEX MATCH "[^;]+::${__@__FINAL_NAME@_module};|[^;]+::${__@__FINAL_NAME@_module}$" __@__FINAL_NAME@_target "${@__FINAL_NAME@_ENTIRE_LIBS}")
+    if (NOT __@__FINAL_NAME@_target OR "${__@__FINAL_NAME@_target}" STREQUAL "")
+      string(REGEX MATCH ";${__@__FINAL_NAME@_module};|^${__@__FINAL_NAME@_module};|;${__@__FINAL_NAME@_module}$|^${__@__FINAL_NAME@_module}$" __@__FINAL_NAME@_target "${@__FINAL_NAME@_ENTIRE_LIBS}")
+    endif ()
+    if (NOT __@__FINAL_NAME@_target OR "${__@__FINAL_NAME@_target}" STREQUAL "")
+      message(FATAL_ERROR "@__FINAL_NAME@: Could not find the \"${__@__FINAL_NAME@_module}\" component")
+    endif ()
+    string(REGEX REPLACE "^;" "" __@__FINAL_NAME@_target "${__@__FINAL_NAME@_target}")
+    string(REGEX REPLACE ";$" "" __@__FINAL_NAME@_target "${__@__FINAL_NAME@_target}")
+    list(APPEND @__FINAL_NAME@_LIBS "${__@__FINAL_NAME@_target}")
+
+    # Add the include's directories of the component to @__FINAL_NAME@_INCLUDE_DIRS
+    get_target_property(__${__@__FINAL_NAME@_module}_included_dirs "${__@__FINAL_NAME@_target}" INTERFACE_INCLUDE_DIRECTORIES)
+    # Append value in @__FINAL_NAME@_INCLUDE_DIRS
+    list(APPEND @__FINAL_NAME@_INCLUDE_DIRS "${__${__@__FINAL_NAME@_module}_included_dirs}")
+    list(REMOVE_DUPLICATES @__FINAL_NAME@_INCLUDE_DIRS)
+
+    unset(__@__FINAL_NAME@_target)
+    unset(__${__@__FINAL_NAME@_module}_included_dirs)
+  endif ()
+endforeach ()
+unset(__@__FINAL_NAME@_module)
+
+# The default value, the directory is also included when no components are added
+set_and_check(__@__FINAL_NAME@_dir "@__FINAL_INSTALL_INCLUDE_DIR@")
+list(APPEND @__FINAL_NAME@_INCLUDE_DIRS "${__@__FINAL_NAME@_dir}")
+list(REMOVE_DUPLICATES @__FINAL_NAME@_INCLUDE_DIRS)
+unset(__@__FINAL_NAME@_dir)
+
+# Define @PROJECT NAME@_LIBRARY_DIRS variable
+set_and_check(__@__FINAL_NAME@_dir "@__FINAL_INSTALL_LIB_DIR@")
+list(APPEND @__FINAL_NAME@_LIB_DIRS "${__@__FINAL_NAME@_dir}")
+list(REMOVE_DUPLICATES @__FINAL_NAME@_LIB_DIRS)
+unset(__@__FINAL_NAME@_dir)
+
+# Restore the original CMAKE_PREFIX_PATH value
+set(CMAKE_PREFIX_PATH "${__@__FINAL_NAME@_CMAKE_PREFIX_PATH_old}")
+
+if (__@__FINAL_NAME@_NOTFOUND_MESSAGE)
+  set(@__FINAL_NAME@_NOT_FOUND_MESSAGE "${__@__FINAL_NAME@_NOTFOUND_MESSAGE}")
+  message(${@__FINAL_NAME@_NOT_FOUND_MESSAGE})
+  set(@__FINAL_NAME@_FOUND False)
+endif ()
+
+set_and_check(@__FINAL_NAME@_INSTALL_PREFIX "${__@__FINAL_NAME@_install_prefix}")
+
+check_required_components("")
+
+# Show success message
+if (NOT __@__FINAL_NAME@_NOTFOUND_MESSAGE)
+  message(STATUS "Found @__FINAL_NAME@: ${CMAKE_CURRENT_LIST_FILE} (found version \"${@__FINAL_NAME@_VERSION}\")")
+endif ()
+
+# Clear all temporary variables
+unset(__@__FINAL_NAME@_FIND_PARTS_REQUIRED)
+unset(__@__FINAL_NAME@_FIND_PARTS_QUIET)
+unset(__@__FINAL_NAME@_install_prefix)
+unset(__@__FINAL_NAME@_CMAKE_PREFIX_PATH_old)
+unset(__@__FINAL_NAME@_NOTFOUND_MESSAGE)
+
+if (NOT @__FINAL_NAME@_FOUND)
+  unset(@__FINAL_NAME@_INSTALL_PREFIX)
+  unset(@__FINAL_NAME@_VERSION)
+  unset(@__FINAL_NAME@_ENTIRE_LIBS)
+  unset(@__FINAL_NAME@_LIBS)
+  unset(@__FINAL_NAME@_INCLUDE_DIRS)
+  unset(@__FINAL_NAME@_LIB_DIRS)
+  unset(@__FINAL_NAME@_BIN_DIRS)
+  unset(@__FINAL_NAME@_SHARED)
+endif ()
+]===========================])
+    string(REGEX REPLACE "^[\t\n\r ]+" "" __content "${__content}")
+    set(${content} "${__content}" PARENT_SCOPE)
+    PKG_unset(__content)
+endfunction()
+
+
+# "PKG_normal-config.cmake.in" files content
+function(PKG_content_cmake_normal_config_cmake_in content dependencies)
+    # Store strings generated by dependencies
+    set(__find_dependency_str)
+    # Break down dependencies
+    foreach (__item IN LISTS dependencies)
+        # Badly formatted strings are not allowed
+        if (NOT "${__item}" MATCHES "^[^@:]+@[^@:]+:[^@:]+$" AND
+            NOT "${__item}" MATCHES "^@[^@:]+:[^@:]+$" AND
+            NOT "${__item}" MATCHES "^[^@:]+:[^@:]+$" AND
+            NOT "${__item}" MATCHES "^:[^@:]+$" AND
+            NOT "${__item}" MATCHES "^[^@:]+$" AND
+            NOT "${__item}" MATCHES "^[^@:]+@[^@:]+$")
+            message(FATAL_ERROR "PKG: \"${__item}\" wrong format")
+        endif ()
+
+        string(REGEX MATCHALL "[@:]" __list_sign "${__item}")
+        string(REGEX MATCHALL "[^@:]+" __list_data "${__item}")
+        list(LENGTH __list_sign __count_sign)
+        list(LENGTH __list_data __count_data)
+
+        # Get the values of the following three variables
+        set(__project_str "")
+        set(__version_str "")
+        set(__components_str "")
+        list(FIND __list_sign "@" __index)
+        if (NOT ${__index} EQUAL -1)
+            if (${__count_sign} EQUAL 1 AND ${__count_data} EQUAL 2)    # project@version
+                list(GET __list_data 0 __project_str)
+                list(GET __list_data 1 __version_str)
+            elseif (${__count_sign} EQUAL 2 AND ${__count_data} EQUAL 3)    # project@version:components
+                list(GET __list_data 0 __project_str)
+                list(GET __list_data 1 __version_str)
+                list(GET __list_data 2 __components_str)
+            elseif (${__count_sign} EQUAL 2 AND ${__count_data} EQUAL 2)    # @version:components
+                # Only components support this notation
+                if (NOT __cf__IS_COMPONENT)
+                    message(FATAL_ERROR "PKG: The target is not a component，wrong expression of \"${__item}\"")
+                endif ()
+                set(__project_str "${__cf__PROJECT}")
+                list(GET __list_data 0 __version_str)
+                list(GET __list_data 1 __components_str)
+            endif ()
+        else ()
+            PKG_unset(__index)
+            list(FIND __list_sign ":" __index)
+            if (NOT ${__index} EQUAL -1)
+                if (${__count_data} EQUAL 2)        # project:components
+                    list(GET __list_data 0 __project_str)
+                    list(GET __list_data 1 __components_str)
+                elseif (${__count_data} EQUAL 1)    # :components
+                    # Only components support this notation
+                    if (NOT __cf__IS_COMPONENT)
+                        message(FATAL_ERROR "PKG: The target is not a component，wrong expression of \"${__item}\"")
+                    endif ()
+                    set(__project_str "${__cf__PROJECT}")
+                    list(GET __list_data 0 __components_str)
+                endif ()
+            else ()     # project
+                list(GET __list_data 0 __project_str)
+            endif ()
+        endif ()
+        PKG_unset(__index)
+
+        # Splicing `find_dependency()` function
+        string(APPEND __find_dependency_str "find_dependency(${__project_str}")
+        if (DEFINED __version_str AND NOT "${__version_str}" STREQUAL "")
+            string(APPEND __find_dependency_str " ${__version_str}")
+        endif ()
+        if (DEFINED __components_str AND NOT "${__components_str}" STREQUAL "")
+            string(REPLACE "," " " __components_str "${__components_str}")
+            string(APPEND __find_dependency_str " COMPONENTS ${__components_str}")
+        endif ()
+        string(APPEND __find_dependency_str ")\n")
+
+        PKG_unset(__project_str __version_str __components_str)
+    endforeach ()
+    PKG_unset(__item)
+
+    # 如果不是组件，则添加版本号
+    if (NOT __cf__IS_COMPONENT)
+        string(APPEND __content [===========================[
+# Set the version number
+set(@__FINAL_NAME@_VERSION "@__FINAL_VERSION@")
+]===========================])
+    endif ()
+
+    string(APPEND __content [===========================[
+@PACKAGE_INIT@
+
+]===========================])
+
+    # If there are dependencies, add dependencies
+    if (DEFINED __find_dependency_str AND NOT "${__find_dependency_str}" STREQUAL "")
+        string(APPEND __content "# add dependencies\ninclude(CMakeFindDependencyMacro)\n${__find_dependency_str}\n")
+    endif ()
+    PKG_unset(__find_dependency_str)
+
+    string(APPEND __content [===========================[
+include("${CMAKE_CURRENT_LIST_DIR}/@__FINAL_NAME@-targets.cmake")
+]===========================])
+    string(REGEX REPLACE "^[\t\n\r ]+" "" __content "${__content}")
+    set(${content} "${__content}" PARENT_SCOPE)
+    PKG_unset(__content)
+endfunction()
