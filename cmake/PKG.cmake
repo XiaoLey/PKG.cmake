@@ -27,14 +27,13 @@
 # ----------------------------------------
 
 
-#cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 # PKG.cmake version control
-set(CURRENT_PKG_VERSION 0.9-beta)
+set(CURRENT_PKG_VERSION 0.9.1-beta)
 if (NOT "${CURRENT_PKG_VERSION}" MATCHES "-release$")
     message(WARNING "PKG: The current PKG.cmake is not a stable version, if you want to use stable functions, please download the release version.")
 endif ()
-
 
 
 #===============================================================================
@@ -389,6 +388,10 @@ function(PKG)
         endif ()
     endforeach ()
 
+    if (NOT __cf__IS_COMPONENTS)
+        PKG_set_rpath()
+    endif ()
+
 
     # Add uninstall command
     if (__cf__ADD_UNINSTALL)
@@ -457,7 +460,7 @@ if (NOT EXISTS "${__install_file}")
   message(FATAL_ERROR "PKG: \"${__install_file}\" does not exist")
 endif ()
 
-message(STATUS "PKG: Executing the Script: ${CMAKE_CURRENT_LIST_FILE}...")
+message(STATUS "PKG: Executing: ${CMAKE_CURRENT_LIST_FILE}...")
 
 file(READ "${__install_file}" __cmake_install_content)
 
@@ -516,7 +519,7 @@ unset(__content_list)
 
 file(WRITE "${__install_file}" "${__cmake_install_content}")
 
-message(STATUS "PKG: Execution completed")
+message(STATUS "PKG: Execution completed: ${CMAKE_CURRENT_LIST_FILE}")
 unset(__install_file)
 unset(__cmake_install_content)
 ]==========])
@@ -978,6 +981,19 @@ function(PKG_install_dirs dirs_list)
 endfunction()
 
 
+function(PKG_set_rpath)
+    get_target_property(__install_rpaths ${__cf__NAME} INSTALL_RPATH)
+    get_target_property(__build_rpaths ${__cf__NAME} BUILD_RPATH)
+    list(APPEND __install_rpaths "${__cf__INSTALL_LIB_DIR}")
+    list(APPEND __build_rpaths "${__cf__BINARY_LIB_DIR}")
+    set_target_properties(
+      ${__cf__NAME} PROPERTIES
+      INSTALL_RPATH "${__install_rpaths}"
+      BUILD_RPATH "${__build_rpaths}"
+    )
+endfunction()
+
+
 # Add uninstall command
 # INPUT:
 #   ARGV     Other directories or files that need to be uninstalled together
@@ -1088,10 +1104,15 @@ set(@__FINAL_NAME@_VERSION "@__FINAL_VERSION@")
 
 @PACKAGE_INIT@
 
+# @__FINAL_NAME@ begin
+set(__@__FINAL_NAME@_find_package_begin "TRUE" CACHE INTERNAL "find_package(@__FINAL_NAME@) begin" )
+
 # If true, it is a shared library
 set(@__FINAL_NAME@_SHARED @BUILD_SHARED_LIBS@)
 # binary directory location
-list(APPEND @__FINAL_NAME@_BIN_DIRS "@__FINAL_INSTALL_BIN_DIR@")
+if(EXISTS "@__FINAL_INSTALL_BIN_DIR@")
+  list(APPEND @__FINAL_NAME@_BIN_DIRS "@__FINAL_INSTALL_BIN_DIR@")
+endif()
 
 set(__@__FINAL_NAME@_FIND_PARTS_REQUIRED)
 if (@__FINAL_NAME@_FIND_REQUIRED)
@@ -1111,11 +1132,20 @@ set_and_check(CMAKE_PREFIX_PATH "${__@__FINAL_NAME@_install_prefix}")
 # Define @__FINAL_NAME@_ENTIRE_LIBS
 set(@__FINAL_NAME@_ENTIRE_LIBS "@__ENTIRE_LIBRARIES@")
 
+#if(DEFINED __@__FINAL_NAME@_module AND NOT "${__@__FINAL_NAME@_module}" STREQUAL "")
+#  list(INSERT __@__FINAL_NAME@_modules_save 0 "${__@__FINAL_NAME@_module}")
+#endif()
+
 foreach (__@__FINAL_NAME@_module ${@__FINAL_NAME@_FIND_COMPONENTS})
+  if (@__FINAL_NAME@-${__@__FINAL_NAME@_module}_FOUND)
+    continue()
+  endif()
+
   find_package(@__FINAL_NAME@-${__@__FINAL_NAME@_module}
                ${__@__FINAL_NAME@_FIND_PARTS_QUIET}
                ${__@__FINAL_NAME@_FIND_PARTS_REQUIRED}
                PATHS "${__@__FINAL_NAME@_install_prefix}" NO_DEFAULT_PATH)
+  set(@__FINAL_NAME@_FOUND "${@__FINAL_NAME@-${__@__FINAL_NAME@_module}_FOUND}")
 
   if (NOT @__FINAL_NAME@-${__@__FINAL_NAME@_module}_FOUND)
     if (@__FINAL_NAME@_FIND_REQUIRED_${__@__FINAL_NAME@_module})
@@ -1156,16 +1186,25 @@ foreach (__@__FINAL_NAME@_module ${@__FINAL_NAME@_FIND_COMPONENTS})
 endforeach ()
 unset(__@__FINAL_NAME@_module)
 
+#if(DEFINED __@__FINAL_NAME@_modules_save AND NOT "${__@__FINAL_NAME@_modules_save}" STREQUAL "")
+#  list(POP_FRONT __@__FINAL_NAME@_modules_save __@__FINAL_NAME@_module)
+#endif()
+
+
 # The default value, the directory is also included when no components are added
-set_and_check(__@__FINAL_NAME@_dir "@__FINAL_INSTALL_INCLUDE_DIR@")
-list(APPEND @__FINAL_NAME@_INCLUDE_DIRS "${__@__FINAL_NAME@_dir}")
-list(REMOVE_DUPLICATES @__FINAL_NAME@_INCLUDE_DIRS)
+#set_and_check(__@__FINAL_NAME@_dir "@__FINAL_INSTALL_INCLUDE_DIR@")
+if(EXISTS "__@__FINAL_NAME@_dir")
+  list(APPEND @__FINAL_NAME@_INCLUDE_DIRS "${__@__FINAL_NAME@_dir}")
+  list(REMOVE_DUPLICATES @__FINAL_NAME@_INCLUDE_DIRS)
+endif()
 unset(__@__FINAL_NAME@_dir)
 
 # Define @PROJECT NAME@_LIBRARY_DIRS variable
-set_and_check(__@__FINAL_NAME@_dir "@__FINAL_INSTALL_LIB_DIR@")
-list(APPEND @__FINAL_NAME@_LIB_DIRS "${__@__FINAL_NAME@_dir}")
-list(REMOVE_DUPLICATES @__FINAL_NAME@_LIB_DIRS)
+#set_and_check(__@__FINAL_NAME@_dir "@__FINAL_INSTALL_LIB_DIR@")
+if(EXISTS "__@__FINAL_NAME@_dir")
+  list(APPEND @__FINAL_NAME@_LIB_DIRS "${__@__FINAL_NAME@_dir}")
+  list(REMOVE_DUPLICATES @__FINAL_NAME@_LIB_DIRS)
+endif()
 unset(__@__FINAL_NAME@_dir)
 
 # Restore the original CMAKE_PREFIX_PATH value
@@ -1218,7 +1257,7 @@ function(PKG_content_cmake_normal_config_cmake_in content dependencies)
     foreach (__item IN LISTS dependencies)
         # Badly formatted strings are not allowed
         if (NOT "${__item}" MATCHES "^[^@:]+@[^@:]+:[^@:]+$" AND
-            NOT "${__item}" MATCHES "^@[^@:]+:[^@:]+$" AND
+            #NOT "${__item}" MATCHES "^@[^@:]+:[^@:]+$" AND
             NOT "${__item}" MATCHES "^[^@:]+:[^@:]+$" AND
             NOT "${__item}" MATCHES "^:[^@:]+$" AND
             NOT "${__item}" MATCHES "^[^@:]+$" AND
@@ -1244,14 +1283,14 @@ function(PKG_content_cmake_normal_config_cmake_in content dependencies)
                 list(GET __list_data 0 __project_str)
                 list(GET __list_data 1 __version_str)
                 list(GET __list_data 2 __components_str)
-            elseif (${__count_sign} EQUAL 2 AND ${__count_data} EQUAL 2)    # @version:components
-                # Only components support this notation
-                if (NOT __cf__IS_COMPONENT)
-                    message(FATAL_ERROR "PKG: The target is not a component，wrong expression of \"${__item}\"")
-                endif ()
-                set(__project_str "${__cf__PROJECT}")
-                list(GET __list_data 0 __version_str)
-                list(GET __list_data 1 __components_str)
+                #elseif (${__count_sign} EQUAL 2 AND ${__count_data} EQUAL 2)    # @version:components
+                #    # Only components support this notation
+                #    if (NOT __cf__IS_COMPONENT)
+                #        message(FATAL_ERROR "PKG: The target is not a component，wrong expression of \"${__item}\"")
+                #    endif ()
+                #    set(__project_str "${__cf__PROJECT}")
+                #    list(GET __list_data 0 __version_str)
+                #    list(GET __list_data 1 __components_str)
             endif ()
         else ()
             PKG_unset(__index)
@@ -1265,8 +1304,10 @@ function(PKG_content_cmake_normal_config_cmake_in content dependencies)
                     if (NOT __cf__IS_COMPONENT)
                         message(FATAL_ERROR "PKG: The target is not a component，wrong expression of \"${__item}\"")
                     endif ()
-                    set(__project_str "${__cf__PROJECT}")
-                    list(GET __list_data 0 __components_str)
+
+                    list(GET __list_data 0 __components_str_tmp)
+                    set(__project_str "${__cf__PROJECT}-${__components_str_tmp}")
+                    PKG_unset(__components_str_tmp)
                 endif ()
             else ()     # project
                 list(GET __list_data 0 __project_str)
@@ -1289,7 +1330,7 @@ function(PKG_content_cmake_normal_config_cmake_in content dependencies)
     endforeach ()
     PKG_unset(__item)
 
-    # 如果不是组件，则添加版本号
+    # If not a component, add the version number
     if (NOT __cf__IS_COMPONENT)
         string(APPEND __content [===========================[
 # Set the version number
@@ -1297,14 +1338,21 @@ set(@__FINAL_NAME@_VERSION "@__FINAL_VERSION@")
 ]===========================])
     endif ()
 
-    string(APPEND __content [===========================[
-@PACKAGE_INIT@
-
-]===========================])
+    string(APPEND __content "\@PACKAGE_INIT\@\n\n# add dependencies\n")
 
     # If there are dependencies, add dependencies
     if (DEFINED __find_dependency_str AND NOT "${__find_dependency_str}" STREQUAL "")
-        string(APPEND __content "# add dependencies\ninclude(CMakeFindDependencyMacro)\n${__find_dependency_str}\n")
+        #        string(APPEND __content [[
+        #string(RANDOM LENGTH 10 ALPHABET "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" __func_rand)
+        #function(_PKG_@__FINAL_NAME@_find_dependencies_${__func_rand})
+        #]])
+        string(APPEND __content "include(CMakeFindDependencyMacro)\n${__find_dependency_str}\n")
+        #        string(APPEND __content [[
+        #endfunction()
+        #_PKG_@__FINAL_NAME@_find_dependencies_${__func_rand}()
+        #unset(__func_rand)
+        #
+        #]])
     endif ()
     PKG_unset(__find_dependency_str)
 
