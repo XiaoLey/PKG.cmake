@@ -182,7 +182,7 @@ PKG(
   _INCLUDE_DESTINATION   "<_INSTALL_INCLUDE_DIR>"
   _DISABLE_INTERFACE     FALSE
   _MODE                  "Development"
-  _NAMESPACE             ""
+  _NAMESPACE             "" | "<_PROJECT>::<_NAME>"
   _EXPORT_HEADER         ""
   _EXPORT_MACRO          "<_NAME>_API"|"<_PROJECT>_<_NAME>_API"    # UPPERCASE
   _EXPORT_INSTALL_DIR    "<_INSTALL_INCLUDE_DIR>"
