@@ -182,7 +182,7 @@ PKG(
   _INCLUDE_DESTINATION   "<_INSTALL_INCLUDE_DIR>"
   _DISABLE_INTERFACE     FALSE
   _MODE                  "Development"
-  _NAMESPACE             "" | "<_PROJECT>::<_NAME>"
+  _NAMESPACE             "<_PROJECT>" | ""
   _EXPORT_HEADER         ""
   _EXPORT_MACRO          "<_NAME>_API"|"<_PROJECT>_<_NAME>_API"    # UPPERCASE
   _EXPORT_INSTALL_DIR    "<_INSTALL_INCLUDE_DIR>"
@@ -441,7 +441,7 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 - #### \_NAMESPACE
 
   - <b>Type: </b> one value
-  - <b>Default:</b> "\<\_PROJECT\>::\<\_NAME\>"(Only when `_IS_COMPONENT` is defined) \| Undefined
+  - <b>Default:</b> "\<\_PROJECT\>"(only when `_IS_COMPONENT` is defined) \| Undefined
   - <b>Description:</b> Use the namespace to install your target, do not add extra '::'.
 
 - #### \_EXPORT\_HEADER
