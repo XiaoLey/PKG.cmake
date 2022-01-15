@@ -845,6 +845,8 @@ function(PKG_generate_target_config)
     endif ()
 
 
+    string(RANDOM LENGTH 8 ALPHABET "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" __RAND)
+    string(RANDOM LENGTH 6 ALPHABET "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" __RAND2)
     set(__FINAL_NAME "${__final_name}") # Used for variables in configuration files
     set(__FINAL_VERSION "${__cf__VERSION}") # Used for variables in configuration files
     set(__FINAL_INSTALL_DIR "${__cf__INSTALL_DIR}") # Used for _INSTALL_DIR in configuration files
@@ -858,7 +860,8 @@ function(PKG_generate_target_config)
       INSTALL_DESTINATION "${__cf__INSTALL_LIB_DIR}/cmake/${__final_name}"
       PATH_VARS ${__config_PATH_VARS}
     )
-    PKG_unset(__ENTIRE_LIBRARIES __FINAL_NAME __FINAL_VERSION __FINAL_INSTALL_DIR __FINAL_INSTALL_LIB_DIR)
+    PKG_unset(__ENTIRE_LIBRARIES __RAND __RAND2 __FINAL_NAME __FINAL_VERSION __FINAL_INSTALL_DIR
+              __FINAL_INSTALL_INCLUDE_DIR __FINAL_INSTALL_LIB_DIR __FINAL_INSTALL_BIN_DIR)
 
     install(
       FILES
@@ -1104,9 +1107,6 @@ set(@__FINAL_NAME@_VERSION "@__FINAL_VERSION@")
 
 @PACKAGE_INIT@
 
-# @__FINAL_NAME@ begin
-set(__@__FINAL_NAME@_find_package_begin "TRUE" CACHE INTERNAL "find_package(@__FINAL_NAME@) begin" )
-
 # If true, it is a shared library
 set(@__FINAL_NAME@_SHARED @BUILD_SHARED_LIBS@)
 # binary directory location
@@ -1114,123 +1114,112 @@ if(EXISTS "@__FINAL_INSTALL_BIN_DIR@")
   list(APPEND @__FINAL_NAME@_BIN_DIRS "@__FINAL_INSTALL_BIN_DIR@")
 endif()
 
-set(__@__FINAL_NAME@_FIND_PARTS_REQUIRED)
+set(__@__FINAL_NAME@_find_parts_required_@__RAND@)
 if (@__FINAL_NAME@_FIND_REQUIRED)
-  set(__@__FINAL_NAME@_FIND_PARTS_REQUIRED REQUIRED)
+  set(__@__FINAL_NAME@_find_parts_required_@__RAND@ REQUIRED)
 endif ()
-set(__@__FINAL_NAME@_FIND_PARTS_QUIET)
+set(__@__FINAL_NAME@_find_parts_quiet_@__RAND@)
 if (@__FINAL_NAME@_FIND_QUIETLY)
-  set(__@__FINAL_NAME@_FIND_PARTS_QUIET QUIET)
+  set(__@__FINAL_NAME@_find_parts_quiet_@__RAND@ QUIET)
 endif ()
 
-get_filename_component(__@__FINAL_NAME@_install_prefix "${PACKAGE_PREFIX_DIR}" ABSOLUTE)
+get_filename_component(__@__FINAL_NAME@_install_prefix_@__RAND@ "${PACKAGE_PREFIX_DIR}" ABSOLUTE)
 
 # Let components find each other, but don't overwrite CMAKE_PREFIX_PATH
-set(__@__FINAL_NAME@_CMAKE_PREFIX_PATH_old "${CMAKE_PREFIX_PATH}")
-set_and_check(CMAKE_PREFIX_PATH "${__@__FINAL_NAME@_install_prefix}")
+set(__@__FINAL_NAME@_CMAKE_PREFIX_PATH_old_@__RAND@ "${CMAKE_PREFIX_PATH}")
+set_and_check(CMAKE_PREFIX_PATH "${__@__FINAL_NAME@_install_prefix_@__RAND@}")
+
+
+foreach (__@__FINAL_NAME@_module_@__RAND2@ ${@__FINAL_NAME@_FIND_COMPONENTS})
+  if (@__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}_FOUND)
+    continue()
+  endif()
+
+  find_package(@__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}
+               ${__@__FINAL_NAME@_find_parts_quiet_@__RAND@} ${__@__FINAL_NAME@_find_parts_required_@__RAND@}
+               PATHS "${__@__FINAL_NAME@_install_prefix_@__RAND@}" NO_DEFAULT_PATH)
+  set(@__FINAL_NAME@_FOUND "${@__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}_FOUND}")
+
+  if (NOT @__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}_FOUND)
+    if (@__FINAL_NAME@_FIND_REQUIRED_${__@__FINAL_NAME@_module_@__RAND2@})
+      set_and_check(@__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}_CONFIG_PATH_@__RAND@ "@__FINAL_INSTALL_LIB_DIR@/cmake/@__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}/@__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}-config.cmake")
+      set(__@__FINAL_NAME@_notfound_message_@__RAND@ "${__@__FINAL_NAME@_notfound_message_@__RAND@}Failed to load @__FINAL_NAME@ component \"${__@__FINAL_NAME@_module_@__RAND2@}\", config file \"${@__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}_CONFIG_PATH_@__RAND@}\"\n")
+      unset(@__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}_CONFIG_PATH_@__RAND@)
+    elseif (NOT @__FINAL_NAME@_FIND_QUIETLY)
+      set_and_check(@__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}_CONFIG_PATH_@__RAND@ "@__FINAL_INSTALL_LIB_DIR@/cmake/@__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}/@__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}-config.cmake")
+      if (NOT EXISTS "${@__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}_CONFIG_PATH_@__RAND@}")
+        message(WARNING "Failed to find @__FINAL_NAME@ component \"${__@__FINAL_NAME@_module_@__RAND2@}\" config file at \"${@__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}_CONFIG_PATH_@__RAND@}\"")
+      else ()
+        message(WARNING "Failed to load @__FINAL_NAME@ component \"${__@__FINAL_NAME@_module_@__RAND2@}\", config file \"${@__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}_CONFIG_PATH_@__RAND@}\"")
+      endif ()
+      unset(@__FINAL_NAME@-${__@__FINAL_NAME@_module_@__RAND2@}_CONFIG_PATH_@__RAND@)
+    endif ()
+  else ()
+    # For backward compatibility set the LIBRARIES variable
+    string(REGEX MATCH "[^;]+::${__@__FINAL_NAME@_module_@__RAND2@};|[^;]+::${__@__FINAL_NAME@_module_@__RAND2@}$" __@__FINAL_NAME@_target_@__RAND@ "@__ENTIRE_LIBRARIES@")
+    if (NOT __@__FINAL_NAME@_target_@__RAND@ OR "${__@__FINAL_NAME@_target_@__RAND@}" STREQUAL "")
+      string(REGEX MATCH ";${__@__FINAL_NAME@_module_@__RAND2@};|^${__@__FINAL_NAME@_module_@__RAND2@};|;${__@__FINAL_NAME@_module_@__RAND2@}$|^${__@__FINAL_NAME@_module_@__RAND2@}$" __@__FINAL_NAME@_target_@__RAND@ "@__ENTIRE_LIBRARIES@")
+    endif ()
+    if (NOT __@__FINAL_NAME@_target_@__RAND@ OR "${__@__FINAL_NAME@_target_@__RAND@}" STREQUAL "")
+      message(FATAL_ERROR "@__FINAL_NAME@: Could not find the \"${__@__FINAL_NAME@_module_@__RAND2@}\" component")
+    endif ()
+    string(REGEX REPLACE "^;" "" __@__FINAL_NAME@_target_@__RAND@ "${__@__FINAL_NAME@_target_@__RAND@}")
+    string(REGEX REPLACE ";$" "" __@__FINAL_NAME@_target_@__RAND@ "${__@__FINAL_NAME@_target_@__RAND@}")
+    list(APPEND @__FINAL_NAME@_LIBS "${__@__FINAL_NAME@_target_@__RAND@}")
+
+    # Add the include's directories of the component to @__FINAL_NAME@_INCLUDE_DIRS
+    get_target_property(__${__@__FINAL_NAME@_module_@__RAND2@}_included_dirs_@__RAND@ "${__@__FINAL_NAME@_target_@__RAND@}" INTERFACE_INCLUDE_DIRECTORIES)
+    # Append value in @__FINAL_NAME@_INCLUDE_DIRS
+    list(APPEND @__FINAL_NAME@_INCLUDE_DIRS "${__${__@__FINAL_NAME@_module_@__RAND2@}_included_dirs_@__RAND@}")
+    list(REMOVE_DUPLICATES @__FINAL_NAME@_INCLUDE_DIRS)
+
+    unset(__@__FINAL_NAME@_target_@__RAND@)
+    unset(__${__@__FINAL_NAME@_module_@__RAND2@}_included_dirs_@__RAND@)
+  endif ()
+endforeach ()
+unset(__@__FINAL_NAME@_module_@__RAND2@)
+
 
 # Define @__FINAL_NAME@_ENTIRE_LIBS
 set(@__FINAL_NAME@_ENTIRE_LIBS "@__ENTIRE_LIBRARIES@")
 
-#if(DEFINED __@__FINAL_NAME@_module AND NOT "${__@__FINAL_NAME@_module}" STREQUAL "")
-#  list(INSERT __@__FINAL_NAME@_modules_save 0 "${__@__FINAL_NAME@_module}")
-#endif()
-
-foreach (__@__FINAL_NAME@_module ${@__FINAL_NAME@_FIND_COMPONENTS})
-  if (@__FINAL_NAME@-${__@__FINAL_NAME@_module}_FOUND)
-    continue()
-  endif()
-
-  find_package(@__FINAL_NAME@-${__@__FINAL_NAME@_module}
-               ${__@__FINAL_NAME@_FIND_PARTS_QUIET}
-               ${__@__FINAL_NAME@_FIND_PARTS_REQUIRED}
-               PATHS "${__@__FINAL_NAME@_install_prefix}" NO_DEFAULT_PATH)
-  set(@__FINAL_NAME@_FOUND "${@__FINAL_NAME@-${__@__FINAL_NAME@_module}_FOUND}")
-
-  if (NOT @__FINAL_NAME@-${__@__FINAL_NAME@_module}_FOUND)
-    if (@__FINAL_NAME@_FIND_REQUIRED_${__@__FINAL_NAME@_module})
-      set_and_check(@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH "@__FINAL_INSTALL_LIB_DIR@/cmake/@__FINAL_NAME@-${__@__FINAL_NAME@_module}/@__FINAL_NAME@-${__@__FINAL_NAME@_module}-config.cmake")
-      set(__@__FINAL_NAME@_NOTFOUND_MESSAGE "${__@__FINAL_NAME@_NOTFOUND_MESSAGE}Failed to load @__FINAL_NAME@ component \"${__@__FINAL_NAME@_module}\", config file \"${@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH}\"\n")
-      unset(@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH)
-    elseif (NOT @__FINAL_NAME@_FIND_QUIETLY)
-      set_and_check(@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH "@__FINAL_INSTALL_LIB_DIR@/cmake/@__FINAL_NAME@-${__@__FINAL_NAME@_module}/@__FINAL_NAME@-${__@__FINAL_NAME@_module}-config.cmake")
-      if (NOT EXISTS "${@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH}")
-        message(WARNING "Failed to find @__FINAL_NAME@ component \"${__@__FINAL_NAME@_module}\" config file at \"${@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH}\"")
-      else ()
-        message(WARNING "Failed to load @__FINAL_NAME@ component \"${__@__FINAL_NAME@_module}\", config file \"${@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH}\"")
-      endif ()
-      unset(@__FINAL_NAME@-${__@__FINAL_NAME@_module}_CONFIG_PATH)
-    endif ()
-  else ()
-    # For backward compatibility set the LIBRARIES variable
-    string(REGEX MATCH "[^;]+::${__@__FINAL_NAME@_module};|[^;]+::${__@__FINAL_NAME@_module}$" __@__FINAL_NAME@_target "${@__FINAL_NAME@_ENTIRE_LIBS}")
-    if (NOT __@__FINAL_NAME@_target OR "${__@__FINAL_NAME@_target}" STREQUAL "")
-      string(REGEX MATCH ";${__@__FINAL_NAME@_module};|^${__@__FINAL_NAME@_module};|;${__@__FINAL_NAME@_module}$|^${__@__FINAL_NAME@_module}$" __@__FINAL_NAME@_target "${@__FINAL_NAME@_ENTIRE_LIBS}")
-    endif ()
-    if (NOT __@__FINAL_NAME@_target OR "${__@__FINAL_NAME@_target}" STREQUAL "")
-      message(FATAL_ERROR "@__FINAL_NAME@: Could not find the \"${__@__FINAL_NAME@_module}\" component")
-    endif ()
-    string(REGEX REPLACE "^;" "" __@__FINAL_NAME@_target "${__@__FINAL_NAME@_target}")
-    string(REGEX REPLACE ";$" "" __@__FINAL_NAME@_target "${__@__FINAL_NAME@_target}")
-    list(APPEND @__FINAL_NAME@_LIBS "${__@__FINAL_NAME@_target}")
-
-    # Add the include's directories of the component to @__FINAL_NAME@_INCLUDE_DIRS
-    get_target_property(__${__@__FINAL_NAME@_module}_included_dirs "${__@__FINAL_NAME@_target}" INTERFACE_INCLUDE_DIRECTORIES)
-    # Append value in @__FINAL_NAME@_INCLUDE_DIRS
-    list(APPEND @__FINAL_NAME@_INCLUDE_DIRS "${__${__@__FINAL_NAME@_module}_included_dirs}")
-    list(REMOVE_DUPLICATES @__FINAL_NAME@_INCLUDE_DIRS)
-
-    unset(__@__FINAL_NAME@_target)
-    unset(__${__@__FINAL_NAME@_module}_included_dirs)
-  endif ()
-endforeach ()
-unset(__@__FINAL_NAME@_module)
-
-#if(DEFINED __@__FINAL_NAME@_modules_save AND NOT "${__@__FINAL_NAME@_modules_save}" STREQUAL "")
-#  list(POP_FRONT __@__FINAL_NAME@_modules_save __@__FINAL_NAME@_module)
-#endif()
-
-
 # The default value, the directory is also included when no components are added
 #set_and_check(__@__FINAL_NAME@_dir "@__FINAL_INSTALL_INCLUDE_DIR@")
-if(EXISTS "__@__FINAL_NAME@_dir")
-  list(APPEND @__FINAL_NAME@_INCLUDE_DIRS "${__@__FINAL_NAME@_dir}")
+if(EXISTS "@__FINAL_INSTALL_INCLUDE_DIR@")
+  list(APPEND @__FINAL_NAME@_INCLUDE_DIRS "@__FINAL_INSTALL_INCLUDE_DIR@")
   list(REMOVE_DUPLICATES @__FINAL_NAME@_INCLUDE_DIRS)
 endif()
-unset(__@__FINAL_NAME@_dir)
 
 # Define @PROJECT NAME@_LIBRARY_DIRS variable
 #set_and_check(__@__FINAL_NAME@_dir "@__FINAL_INSTALL_LIB_DIR@")
-if(EXISTS "__@__FINAL_NAME@_dir")
-  list(APPEND @__FINAL_NAME@_LIB_DIRS "${__@__FINAL_NAME@_dir}")
+if(EXISTS "@__FINAL_INSTALL_LIB_DIR@")
+  list(APPEND @__FINAL_NAME@_LIB_DIRS "@__FINAL_INSTALL_LIB_DIR@")
   list(REMOVE_DUPLICATES @__FINAL_NAME@_LIB_DIRS)
 endif()
-unset(__@__FINAL_NAME@_dir)
 
 # Restore the original CMAKE_PREFIX_PATH value
-set(CMAKE_PREFIX_PATH "${__@__FINAL_NAME@_CMAKE_PREFIX_PATH_old}")
+set(CMAKE_PREFIX_PATH "${__@__FINAL_NAME@_CMAKE_PREFIX_PATH_old_@__RAND@}")
 
-if (__@__FINAL_NAME@_NOTFOUND_MESSAGE)
-  set(@__FINAL_NAME@_NOT_FOUND_MESSAGE "${__@__FINAL_NAME@_NOTFOUND_MESSAGE}")
-  message(${@__FINAL_NAME@_NOT_FOUND_MESSAGE})
-  set(@__FINAL_NAME@_FOUND False)
+if (DEFINED __@__FINAL_NAME@_notfound_message_@__RAND@ AND NOT "${__@__FINAL_NAME@_notfound_message_@__RAND@}" STREQUAL "")
+  message(${__@__FINAL_NAME@_notfound_message_@__RAND@})
+  set(@__FINAL_NAME@_FOUND FALSE)
 endif ()
 
-set_and_check(@__FINAL_NAME@_INSTALL_PREFIX "${__@__FINAL_NAME@_install_prefix}")
+set_and_check(@__FINAL_NAME@_INSTALL_PREFIX "${__@__FINAL_NAME@_install_prefix_@__RAND@}")
 
 check_required_components("")
 
 # Show success message
-if (NOT __@__FINAL_NAME@_NOTFOUND_MESSAGE)
+if (NOT __@__FINAL_NAME@_notfound_message_@__RAND@ OR "${__@__FINAL_NAME@_notfound_message_@__RAND@}" STREQUAL "")
   message(STATUS "Found @__FINAL_NAME@: ${CMAKE_CURRENT_LIST_FILE} (found version \"${@__FINAL_NAME@_VERSION}\")")
 endif ()
 
 # Clear all temporary variables
-unset(__@__FINAL_NAME@_FIND_PARTS_REQUIRED)
-unset(__@__FINAL_NAME@_FIND_PARTS_QUIET)
-unset(__@__FINAL_NAME@_install_prefix)
-unset(__@__FINAL_NAME@_CMAKE_PREFIX_PATH_old)
-unset(__@__FINAL_NAME@_NOTFOUND_MESSAGE)
+unset(__@__FINAL_NAME@_find_parts_required_@__RAND@)
+unset(__@__FINAL_NAME@_find_parts_quiet_@__RAND@)
+unset(__@__FINAL_NAME@_install_prefix_@__RAND@)
+unset(__@__FINAL_NAME@_CMAKE_PREFIX_PATH_old_@__RAND@)
+unset(__@__FINAL_NAME@_notfound_message_@__RAND@)
 
 if (NOT @__FINAL_NAME@_FOUND)
   unset(@__FINAL_NAME@_INSTALL_PREFIX)
@@ -1338,21 +1327,11 @@ set(@__FINAL_NAME@_VERSION "@__FINAL_VERSION@")
 ]===========================])
     endif ()
 
-    string(APPEND __content "\@PACKAGE_INIT\@\n\n# add dependencies\n")
+    string(APPEND __content "\@PACKAGE_INIT\@\n\n")
 
     # If there are dependencies, add dependencies
     if (DEFINED __find_dependency_str AND NOT "${__find_dependency_str}" STREQUAL "")
-        #        string(APPEND __content [[
-        #string(RANDOM LENGTH 10 ALPHABET "_abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" __func_rand)
-        #function(_PKG_@__FINAL_NAME@_find_dependencies_${__func_rand})
-        #]])
-        string(APPEND __content "include(CMakeFindDependencyMacro)\n${__find_dependency_str}\n")
-        #        string(APPEND __content [[
-        #endfunction()
-        #_PKG_@__FINAL_NAME@_find_dependencies_${__func_rand}()
-        #unset(__func_rand)
-        #
-        #]])
+        string(APPEND __content "# add dependencies\ninclude(CMakeFindDependencyMacro)\n${__find_dependency_str}\n")
     endif ()
     PKG_unset(__find_dependency_str)
 

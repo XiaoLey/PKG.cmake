@@ -261,7 +261,7 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 
       1. The file of the dependent library's `-config.cmake` or `Config.cmake` prefix + `@version`, usually this prefix is the name of the corresponding project. Example:  "boost\_python@1.72"; "boost\_python"; "Soci".
       2. For multi-component projects, you can use the format <b>"project@version:component1,component2..."</b>. Example:  "Boost@1.72:python"; "Boost:system,thread".
-      3. If it is a dependency between the components of the current `_PROJECT`, it can be expressed in the format of <b>"@version:component1,component2..."</b>. Example: "@1.0:component1"(not recommended); ":component2,component3".
+      3. If it is a dependency between the components of the current `_PROJECT`, it can be expressed in the format of <b>":component1,component2..."</b>. Example: ":component2,component3".
 
     - <b>Note:</b> The above "@version" can be omitted, CMake 3.19 after the version support version range. For details, please refer to the use of `find_package()` function.
 
