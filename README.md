@@ -441,6 +441,7 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 - #### \_NAMESPACE
 
   - <b>Type: </b> one value
+  - <b>Default:</b> "\<\_PROJECT\>::\<\_NAME\>"(Only when `_IS_COMPONENT` is defined) \| Undefined
   - <b>Description:</b> Use the namespace to install your target, do not add extra '::'.
 
 - #### \_EXPORT\_HEADER
@@ -485,7 +486,7 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 - #### \_ADD\_UNINSTALL
 
   - <b>Type: </b> option
-  - <b>Description:</b> Available when `_IS_COMPONENT` is undefined, this keyword is used to add an uninstall command. If the `_IS_COMPONENT` is defined, `_ADD_UNINSTALL` is always mandatory to be defined as `FALSE`.
+  - <b>Description:</b> Available when `_IS_COMPONENT` is undefined, this keyword is used to add an uninstall command. If the `_IS_COMPONENT` is defined, `_ADD_UNINSTALL` is always mandatory to be defined as FALSE.
 
 - #### \_UNINSTALL\_TEMPLATE
 
