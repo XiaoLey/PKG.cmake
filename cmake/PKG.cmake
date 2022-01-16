@@ -92,7 +92,9 @@ function(PKG)
 
     PKG_check_empty(__cf__COMPATIBILITY "AnyNewerVersion")
 
-    set(BUILD_SHARED_LIBS "${__cf__SHARED_LIBS}")
+    if (DEFINED __cf__SHARED_LIBS AND __cf__SHARED_LIBS)
+        set(BUILD_SHARED_LIBS "${__cf__SHARED_LIBS}")
+    endif ()
 
     if (NOT __cf__BINARY_DIR OR "${__cf__BINARY_DIR}" STREQUAL "")
         if (__cf__IS_COMPONENT)
