@@ -255,7 +255,7 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 
   - **Type:** multi value
 
-  - **Description:** The dependencies of the target, you can set multiple, will use the ` find_dependency()` function of the [`CMakeFindDependencyMacro`](https://cmake.org/cmake/help/latest/module/CMakeFindDependencyMacro.html) module to find.
+  - **Description:** The dependencies of the target, you can set multiple, will use the ` find_dependency()` function of the [CMakeFindDependencyMacro](https://cmake.org/cmake/help/latest/module/CMakeFindDependencyMacro.html) module to find.
 
   - **Format:** 
 
@@ -409,12 +409,12 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 - #### \_INCLUDE\_FILES
 
   - **Type:** multi value
-  - **Description:** Files location of the target public headers, which can be an absolute or relative path, relative to `CMAKE_CURRENT_SOURCE_DIR`, supports [cmake-generator-expressions](https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html).
+  - **Description:** Files location of the target public headers, which can be an absolute or relative path, relative to `CMAKE_CURRENT_SOURCE_DIR`, supports [cmake-generator-expressions(7)](https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html).
 
 - #### \_INCLUDE\_DIRS
 
   - **Type:** multi value
-  - **Description:** Directories location of the target public headers, which can be absolute or relative, relative to `CMAKE_CURRENT_SOURCE_DIR`, supports [cmake-generator-expressions](https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html).
+  - **Description:** Directories location of the target public headers, which can be absolute or relative, relative to `CMAKE_CURRENT_SOURCE_DIR`, supports [cmake-generator-expressions(7)](https://cmake.org/cmake/help/latest/manual/cmake-generator-expressions.7.html).
 
 - #### \_INCLUDE\_EXCLUDE\_REG
 
@@ -425,7 +425,7 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 
   - **Type:** one value
   - **Default:** "\<_INSTALL_INCLUDE_DIR\>"
-  - **Description:** The `INSTALL_INTERFACE` that matches the target contains directory.
+  - **Description:** `_INCLUDE_DIRS` installation path, which is also the `INSTALL_INTERFACE` that matches the target contains directory.
 
 - #### \_DISABLE\_INTERFACE
 
