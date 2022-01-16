@@ -53,7 +53,7 @@ function(PKG)
       _BINARY_LIB_DIR _NAMESPACE _EXPORT_HEADER _EXPORT_MACRO _EXPORT_INSTALL_DIR
       _CONFIG_TEMPLATE _INCLUDE_EXCLUDE_REG _MODE _INCLUDE_DESTINATION
       _INSTALL_DIR _INSTALL_INCLUDE_DIR _INSTALL_BIN_DIR _INSTALL_LIB_DIR
-      _UNINSTALL_TEMPLATE
+      _APPEND_CONFIG _UNINSTALL_TEMPLATE
     )
     set(
       __multiValueArgs
@@ -195,6 +195,10 @@ function(PKG)
     PKG_check_empty_and_change_relative(__cf__EXPORT_INSTALL_DIR "${__cf__INSTALL_INCLUDE_DIR}" "${__cf__INSTALL_DIR}")
 
     if (NOT __cf__DISABLE_CONFIG)
+        if (DEFINED __cf__APPEND_CONFIG AND NOT "${__cf__APPEND_CONFIG}" STREQUAL "")
+            PKG_change_relative(__cf__APPEND_CONFIG "${CMAKE_CURRENT_SOURCE_DIR}")
+        endif ()
+
         if (NOT __cf__CONFIG_TEMPLATE OR "${__cf__CONFIG_TEMPLATE}" STREQUAL "")
             if (__cf__IS_COMPONENTS)
                 # Generate configuration file
@@ -218,6 +222,10 @@ function(PKG)
         # If the value has been customized, a prompt will pop up
         if (DEFINED __cf__CONFIG_TEMPLATE AND NOT "${__cf__CONFIG_TEMPLATE}" STREQUAL "")
             message("PKG: Keyword \"_CONFIG_TEMPLATE\" for \"${__cf__NAME}\" target will be ignored")
+        endif ()
+
+        if (DEFINED __cf__APPEND_CONFIG AND NOT "${__cf__APPEND_CONFIG}" STREQUAL "")
+            message("PKG: Keyword \"_APPEND_CONFIG\" for \"${__cf__NAME}\" target will be ignored")
         endif ()
     endif ()
 
@@ -1276,6 +1284,12 @@ if (NOT @__FINAL_NAME@_FOUND)
 endif ()
 ]===========================])
     string(REGEX REPLACE "^[\t\n\r ]+" "" __content "${__content}")
+
+    if (DEFINED __cf__APPEND_CONFIG AND NOT "${__cf__APPEND_CONFIG}" STREQUAL "")
+        file(READ "${__cf__APPEND_CONFIG}" __content__append)
+        string(APPEND __content "\n${__content__append}\n")
+    endif ()
+
     set(${content} "${__content}" PARENT_SCOPE)
     PKG_unset(__content)
 endfunction()
@@ -1382,6 +1396,12 @@ set(@__FINAL_NAME@_VERSION "@__FINAL_VERSION@")
 include("${CMAKE_CURRENT_LIST_DIR}/@__FINAL_NAME@-targets.cmake")
 ]===========================])
     string(REGEX REPLACE "^[\t\n\r ]+" "" __content "${__content}")
+
+    if (DEFINED __cf__APPEND_CONFIG AND NOT "${__cf__APPEND_CONFIG}" STREQUAL "")
+        file(READ "${__cf__APPEND_CONFIG}" __content__append)
+        string(APPEND __content "\n${__content__append}\n")
+    endif ()
+
     set(${content} "${__content}" PARENT_SCOPE)
     PKG_unset(__content)
 endfunction()

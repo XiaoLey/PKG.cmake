@@ -189,8 +189,8 @@ PKG(
   _INSTALL_PDB           FALSE
   _DISABLE_CONFIG        FALSE
   _DISABLE_VERSION       FALSE
-  _CONFIG_TEMPLATE       "${CMAKE_SOURCE_DIR}/cmake/PKG_normal-config.cmake.in" | "${CMAKE_SOURCE_DIR}/cmake/PKG_components-config.
-  cmake.in"
+  _CONFIG_TEMPLATE       "${CMAKE_SOURCE_DIR}/cmake/PKG_normal-config.cmake.in" | "${CMAKE_SOURCE_DIR}/cmake/PKG_components-config.cmake.in"
+  _APPEND_CONFIG         ""
   _ADD_UNINSTALL         FALSE
   _UNINSTALL_TEMPLATE    "${CMAKE_SOURCE_DIR}/cmake/PKG_cmake_uninstall.cmake.in"
   _UNINSTALL_ADDITIONAL  ""...
@@ -482,6 +482,16 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
   - **Type:** one value
   - **Default:** "PKG\_normal-config.cmake.in" or "PKG\_components-config.cmake.in" file that is generated in the internal file cache directory.
   - **Description:** The config template file used to generate the `*-config.cmake` file.
+
+- #### \_APPEND\_CONFIG
+
+
+    - **Type:** one value
+
+
+    - **Description:** Specifies a file to append to the template file specified by `_CONFIG_TEMPLATE`. Either an absolute path or a path relative to the `CMAKE_CURRENT_SOURCE_DIR` path can be specified.
+
+
 
 - #### \_ADD\_UNINSTALL
 
