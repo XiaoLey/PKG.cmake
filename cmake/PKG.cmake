@@ -30,7 +30,7 @@
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 # PKG.cmake version control
-set(CURRENT_PKG_VERSION 0.9.1-release)
+set(CURRENT_PKG_VERSION 0.9.2-release)
 if (NOT "${CURRENT_PKG_VERSION}" MATCHES "-release$")
     message(WARNING "PKG: The current PKG.cmake is not a stable version, if you want to use stable functions, please download the release version.")
 endif ()
