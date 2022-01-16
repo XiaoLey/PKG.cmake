@@ -431,11 +431,11 @@ function(PKG)
 
     # Output information
     if (__cf__IS_COMPONENT)
-        message(STATUS "PKG: [Project Component]: \"${__cf__PROJECT}-${__cf__NAME}\" build installation completed")
+        message(STATUS "PKG: [Project Component]: \"${__cf__PROJECT}-${__cf__NAME}\" completed")
     elseif (__cf__IS_COMPONENTS)
-        message(STATUS "PKG: [Multi-component Project]: \"${__cf__NAME}\" build installation completed")
+        message(STATUS "PKG: [Multi-component Project]: \"${__cf__NAME}\" completed")
     else ()
-        message(STATUS "PKG: [Project]: \"${__cf__NAME}\" build installation completed")
+        message(STATUS "PKG: [Project]: \"${__cf__NAME}\" completed")
     endif ()
 endfunction()
 
