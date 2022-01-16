@@ -247,12 +247,16 @@ function(PKG)
             set(__PKG_${__cf__PROJECT}_${__cf__NAME}_SPECIFIC_TARGET "_PKG_${__PKG_specific_target}" CACHE INTERNAL "" FORCE)
         endif ()
         add_custom_target(${__PKG_${__cf__PROJECT}_${__cf__NAME}_SPECIFIC_TARGET} ALL)
+        add_dependencies(${__cf__NAME} ${__PKG_${__cf__PROJECT}_${__cf__NAME}_SPECIFIC_TARGET})
     else ()
         if (NOT __PKG_${__cf__NAME}_SPECIFIC_TARGET OR "${__PKG_${__cf__NAME}_SPECIFIC_TARGET}" STREQUAL "")
             string(RANDOM LENGTH 12 ALPHABET "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" __PKG_specific_target)
             set(__PKG_${__cf__NAME}_SPECIFIC_TARGET "_PKG_${__PKG_specific_target}" CACHE INTERNAL "" FORCE)
         endif ()
         add_custom_target(${__PKG_${__cf__NAME}_SPECIFIC_TARGET} ALL)
+        if (NOT __cf__IS_COMPONENTS)
+            add_dependencies(${__cf__NAME} ${__PKG_${__cf__NAME}_SPECIFIC_TARGET})
+        endif ()
     endif ()
     PKG_unset(__PKG_specific_target)
 
@@ -922,13 +926,23 @@ function(PKG_export_files target_name files_list)
         # Get the parent path of the file
         get_filename_component(__file_parent_dir "${__item}" DIRECTORY)
 
-        add_custom_command(
-          TARGET "${target_name}" PRE_LINK
-          COMMAND "${CMAKE_COMMAND}" -E make_directory "${__dir}"   # Create parent directory
-          COMMAND "${CMAKE_COMMAND}" -E copy "${__item}" "${__dir}"
-          #COMMAND_EXPAND_LISTS     # Command expands the list, splits the list into commands
-          VERBATIM
-        )
+        if (__cf__IS_COMPONENTS)
+            add_custom_command(
+              TARGET "${__PKG_${__cf__NAME}_SPECIFIC_TARGET}" POST_BUILD
+              COMMAND "${CMAKE_COMMAND}" -E make_directory "${__dir}"   # Create parent directory
+              COMMAND "${CMAKE_COMMAND}" -E copy "${__item}" "${__dir}"
+              #COMMAND_EXPAND_LISTS     # Command expands the list, splits the list into commands
+              VERBATIM
+            )
+        else ()
+            add_custom_command(
+              TARGET "${target_name}" PRE_LINK
+              COMMAND "${CMAKE_COMMAND}" -E make_directory "${__dir}"   # Create parent directory
+              COMMAND "${CMAKE_COMMAND}" -E copy "${__item}" "${__dir}"
+              #COMMAND_EXPAND_LISTS     # Command expands the list, splits the list into commands
+              VERBATIM
+            )
+        endif ()
     endforeach ()
     PKG_unset(__dir __item)
 endfunction()
@@ -953,12 +967,21 @@ function(PKG_export_dirs target_name files_list)
             set(__dir_to "${__dir}/${__dir_to}")
         endif ()
 
-        add_custom_command(
-          TARGET "${target_name}" PRE_LINK
-          COMMAND "${CMAKE_COMMAND}" -E copy_directory "${__dir_from}" "${__dir_to}"
-          #COMMAND_EXPAND_LISTS     # Command expands the list, splits the list into commands
-          VERBATIM
-        )
+        if (__cf__IS_COMPONENTS)
+            add_custom_command(
+              TARGET "${__PKG_${__cf__NAME}_SPECIFIC_TARGET}" POST_BUILD
+              COMMAND "${CMAKE_COMMAND}" -E copy_directory "${__dir_from}" "${__dir_to}"
+              #COMMAND_EXPAND_LISTS     # Command expands the list, splits the list into commands
+              VERBATIM
+            )
+        else ()
+            add_custom_command(
+              TARGET "${target_name}" PRE_LINK
+              COMMAND "${CMAKE_COMMAND}" -E copy_directory "${__dir_from}" "${__dir_to}"
+              #COMMAND_EXPAND_LISTS     # Command expands the list, splits the list into commands
+              VERBATIM
+            )
+        endif ()
         PKG_unset(__dir_from __dir_to)
     endforeach ()
     PKG_unset(__dir __item)
