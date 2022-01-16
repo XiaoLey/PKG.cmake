@@ -485,13 +485,8 @@ message(PKG_<_NAME>_EXPORT_HEADER_DIR)
 
 - #### \_APPEND\_CONFIG
 
-
     - **Type:** one value
-
-
     - **Description:** Specifies a file to append to the template file specified by `_CONFIG_TEMPLATE`. Either an absolute path or a path relative to the `CMAKE_CURRENT_SOURCE_DIR` path can be specified.
-
-
 
 - #### \_ADD\_UNINSTALL
 
