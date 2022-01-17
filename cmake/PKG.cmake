@@ -547,7 +547,7 @@ unset(__content_list)
 
 file(WRITE "${__install_file}" "${__cmake_install_content}")
 
-message(STATUS "PKG: Execution completed: ${__file_name}")
+message(STATUS "PKG: Completed: ${__file_name}")
 unset(__file_name)
 unset(__install_file)
 unset(__cmake_install_content)
