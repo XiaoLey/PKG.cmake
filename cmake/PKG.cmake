@@ -432,11 +432,11 @@ function(PKG)
 
     # Output information
     if (__cf__IS_COMPONENT)
-        message(STATUS "PKG: [Project Component]: \"${__cf__PROJECT}-${__cf__NAME}\" completed")
+        message(STATUS "PKG: [Project Component] \"${__cf__PROJECT}-${__cf__NAME}\" completed")
     elseif (__cf__IS_COMPONENTS)
-        message(STATUS "PKG: [Multi-component Project]: \"${__cf__NAME}\" completed")
+        message(STATUS "PKG: [Multi-component Project] \"${__cf__NAME}\" completed")
     else ()
-        message(STATUS "PKG: [Project]: \"${__cf__NAME}\" completed")
+        message(STATUS "PKG: [Project] \"${__cf__NAME}\" completed")
     endif ()
 endfunction()
 
@@ -488,7 +488,7 @@ if (NOT EXISTS "${__install_file}")
 endif ()
 
 get_filename_component(__file_name "${CMAKE_CURRENT_LIST_FILE}" NAME)
-message(STATUS "PKG: Executing: ${__file_name}...")
+message(STATUS "PKG: Executing ${__file_name}...")
 
 file(READ "${__install_file}" __cmake_install_content)
 
@@ -547,7 +547,7 @@ unset(__content_list)
 
 file(WRITE "${__install_file}" "${__cmake_install_content}")
 
-message(STATUS "PKG: Completed: ${__file_name}")
+message(STATUS "PKG: Completed ${__file_name}")
 unset(__file_name)
 unset(__install_file)
 unset(__cmake_install_content)
