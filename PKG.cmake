@@ -30,10 +30,9 @@
 cmake_minimum_required(VERSION 3.20 FATAL_ERROR)
 
 # PKG.cmake version control
-set(CURRENT_PKG_VERSION 0.9.3-beta)
+set(CURRENT_PKG_VERSION 0.9.2-release)
 if (NOT "${CURRENT_PKG_VERSION}" MATCHES "-release$")
-    message(WARNING "PKG: The current \"PKG.cmake\" is not a stable version, if you want to use stable functions, please download the \
-    release version.")
+    message(WARNING "PKG: The current PKG.cmake is not a stable version, if you want to use stable functions, please download the release version.")
 endif ()
 
 
@@ -487,8 +486,7 @@ if (NOT EXISTS "${__install_file}")
   message(FATAL_ERROR "PKG: \"${__install_file}\" does not exist")
 endif ()
 
-get_filename_component(__file_name "${CMAKE_CURRENT_LIST_FILE}" NAME)
-message(STATUS "PKG: Executing: ${__file_name}...")
+message(STATUS "PKG: Executing: ${CMAKE_CURRENT_LIST_FILE}...")
 
 file(READ "${__install_file}" __cmake_install_content)
 
@@ -547,8 +545,7 @@ unset(__content_list)
 
 file(WRITE "${__install_file}" "${__cmake_install_content}")
 
-message(STATUS "PKG: Execution completed: ${__file_name}")
-unset(__file_name)
+message(STATUS "PKG: Execution completed: ${CMAKE_CURRENT_LIST_FILE}")
 unset(__install_file)
 unset(__cmake_install_content)
 ]==========])
