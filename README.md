@@ -569,9 +569,7 @@ target_link_libraries(... PRIVATE PKG::component)
 - **`PKG_<_PROJECT>_<_NAME>_EXPORT_HEADER_DIR`** 定义了 `_IS_COMPONENT` 时该变量才会被导出。
 - **`PKG_<_NAME>_EXPORT_HEADER_DIR`**在未定义 `_IS_COMPONENT` 和 `_IS_COMPONENTS` 时该变量才会被导出。
 
-
-
-
+<br/><br/>
 
 ------
 
